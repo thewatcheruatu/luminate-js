@@ -1,61 +1,15 @@
 /* global GWUtilities, GWMockSelectionLists */
 
 'use strict';
-( function( $ ) {
-	$( function() {
-		let $selects;
-		let gwDonations;
-		let sustainingFocus;
-		
-		try {
-			gwDonations = new GWDonations( { jQuery : $ } );
-		} catch( error ) {
-			console.log( error );
-		}
-		
-		$selects = $( 'select' );
-		if ( $selects.length ) {
-			GWUtilities.loadClass( 'GWMockSelectionLists' )
-				.then( function() {
-					try {
-						let msl = new GWMockSelectionLists( { jQuery: $ } );
-						msl.addFromSelect( $selects );
-						$selects.addClass( 'offscreen' );
-					} catch( error ) {
-						console.log( error );
-					}
-				} )
-				.catch( function( error ) {
-					console.log( error );
-				} );
-			
-		}
-		
-		try {
-			sustainingFocus = new SustainingFocus( { jQuery: $ }, { buttonizeGiftType: true } );
-			sustainingFocus.init();
-		} catch ( error ) {
-			console.log( error );
-		}
-	} );
-	
-} )( jQuery );
-
-function GWDonations( dependencies ) {
+const GWDonations = ( function() {
 	let $;
 	let gwDonationsUtilities;
 	let initialized;
-	
-	dependencies = dependencies || {};
-	$ = dependencies.jQuery || jQuery;
-	
-	if ( $ === undefined ) {
-		throw new Error( 'GWDonations failed to find an instance of jQuery' );
-	} else if ( !$.fn.on ) {
-		throw new Error( 'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
-	}
-	
-	init();
+	const defaultState = {
+		recurring : false,
+		frequency : null,
+		duration : null,
+	};
 	
 	function attachHandlers() {
 		let $donationLevels;
@@ -142,38 +96,63 @@ function GWDonations( dependencies ) {
 			);
 		} );
 	}
+
+	function handleDefaultState() {
+		if ( defaultState.recurring ) {
+			setFlexibleDuration( defaultState.frequency, defaultState.duration );
+		}
+	}
 	
+	/*
+	 * handleQueryString should be called before handleDefaultState,
+	 * because we want any URL parameters to override previously set
+	 * default state property values
+	 */
 	function handleQueryString() {
-		let flexibleDuration;
-		let optionalRepeat;
-		
-		optionalRepeat = GWUtilities.queryString.get( 'set.OptionalRepeat' );
+		const optionalRepeat = GWUtilities.queryString.get( 'set.OptionalRepeat' );
+		const flexibleDuration = GWUtilities.queryString.get( 'set.FlexibleDuration' );
 		if ( optionalRepeat ) {
-			if ( optionalRepeat === 'true' ) {
-				$( '#level_flexiblegift_type2' ).prop( 'checked', true ).trigger( 'change' );
-				flexibleDuration = GWUtilities.queryString.get( 'set.FlexibleDuration' );
-				if ( flexibleDuration ) {
-					$( '#level_flexibleduration' ).val( flexibleDuration ).trigger( 'change' );
+			setDefault( 'recurring', true );
+			if ( flexibleDuration ) {
+				if ( flexibleDuration === 'M:0' ) {
+					setDefault( 'gift duration', 'monthly ongoing' );
 				}
-			} else if ( optionalRepeat === 'false' ) {
-				$( '#level_flexiblegift_type1' ).prop( 'checked', true ).trigger( 'change' );
+				if ( flexibleDuration === 'Y:0' ) {
+					setDefault( 'gift duration', 'yearly ongoing' );
+				}
 			}
 		}
 	}
 	
-	function init() {
+	function init( dependencies ) {
+		dependencies = dependencies || {};
+		$ = dependencies.jQuery || jQuery;
+		
+		if ( $ === undefined ) {
+			throw new Error( 'GWDonations failed to find an instance of jQuery' );
+		} else if ( !$.fn.on ) {
+			throw new Error( 'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
+		}
+	
 		// Second check is redundant, but leaving it for now
 		if ( initialized || $( 'body' ).hasClass( 'gw-donations-ready' ) ) {
-			return;
+			return true;
 		}
+
 		gwDonationsUtilities = GWDonationsUtilities( { jQuery: $ } );
-		// Total Price seems to be kind of laggy, so I'm just going to replace it
-		attachHandlers();
-		miscellaneousSetup();
-		donationTotalInit();
-		handleQueryString();
-		miscellaneousCleanup();
-		$( 'body' ).addClass( 'gw-donations-ready' );
+		
+		// On document ready
+		$( () => {
+			// Total Price seems to be kind of laggy, so I'm just going to replace it
+			attachHandlers();
+			miscellaneousSetup();
+			donationTotalInit();
+			handleQueryString();
+			handleDefaultState();
+			miscellaneousCleanup();
+			$( 'body' ).addClass( 'gw-donations-ready' );
+		} );
+
 		initialized = true;
 		return true;
 	}
@@ -232,10 +211,59 @@ function GWDonations( dependencies ) {
 		}
 		$commentsField.val( comments );
 	}
+
+	function set( property, value ) {
+	}
+
+	function setDefault( property, value ) {
+		if ( property === 'gift duration' ) {
+			defaultState.recurring = true;
+			if ( value === 'monthly ongoing' ) {
+				defaultState.frequency = 'monthly';
+				defaultState.duration = '0';
+			} else if ( value === 'yearly ongoing' ) {
+				defaultState.frequency = 'yearly';
+				defaultState.duration = '0';
+			}
+		}
+	}
+
+	// Duration of 0 = ongoing
+	function setFlexibleDuration( frequency, duration ) {
+		const $giftTypeRecurring = $( '#level_flexiblegift_type2' );
+		const $flexibleDuration = $( '#level_flexibleduration' );
+
+		$giftTypeRecurring.prop( 'checked', true ).trigger( 'change' );
+		if ( frequency && duration ) {
+			let flexVal = '';
+
+			if ( frequency === 'yearly' ) {
+				flexVal += 'Y:';
+			} else if ( frequency === 'monthly' ) {
+				flexVal += 'M:';
+			} else if ( frequency === 'quarterly' ) {
+				flexVal += 'Q:';
+			}
+			flexVal += duration;
+			$flexibleDuration.val( flexVal ).trigger( 'change' );
+		}
+
+	}
+
+	function setMonthlyOngoing() {
+		$( () => {
+			console.log( 'setting monthly ongoing' );
+		} );
+	}
 	
 	return {
+		init : init,
+		set : set,
+		setDefault : setDefault,
 	};
-}
+
+} )();
+
 
 function GWDonationsUtilities( dependencies ) {
 	let $;
@@ -840,4 +868,48 @@ let GWDefaultSteppedSingleDesignee = ( function() {
 		init: init
 	};
 } )();
+
+
+( function( $ ) {
+	try {
+		GWDonations.init( { jQuery : $ } );
+	} catch( error ) {
+		console.log( error );
+	}
+
+	// on document load
+	$( function() {
+		let $selects;
+		let sustainingFocus;
+		
+		
+		$selects = $( 'select' );
+		if ( $selects.length ) {
+			GWUtilities.loadClass( 'GWMockSelectionLists' )
+				.then( function() {
+					try {
+						let msl = new GWMockSelectionLists( { jQuery: $ } );
+						msl.addFromSelect( $selects );
+						$selects.addClass( 'offscreen' );
+					} catch( error ) {
+						console.log( error );
+					}
+				} )
+				.catch( function( error ) {
+					console.log( error );
+				} );
+			
+		}
+		
+		try {
+			sustainingFocus = new SustainingFocus( 
+				{ jQuery: $ }, 
+				{ buttonizeGiftType: true } );
+			sustainingFocus.init();
+		} catch ( error ) {
+			console.log( error );
+		}
+	} );
+	
+} )( jQuery );
 
