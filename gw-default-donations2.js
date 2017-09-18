@@ -642,7 +642,7 @@ let GWDefaultSingleDesigneeBillingInfo = ( function() {
 	};
 } )();
 
-let GWDefaultSteppedSingleDesignee = ( function() {
+const GWDefaultSteppedSingleDesignee = ( function() {
 	let $;
 	let initialized;
 	
@@ -716,12 +716,9 @@ let GWDefaultSteppedSingleDesignee = ( function() {
 			console.log( 'GWDefaultSteppedSingleDesignee has already been initialized' );
 			return false;
 		}
-		if ( document.readyState !== 'interactive' && document.readyState !== 'complete' ) {
-			console.log( 'GWDefaultSteppedSingleDesignee.init() called before DOM ready. Please call from DOM ready handler.' );
-			return false;
-		}
 		dependencies = dependencies || {};
 		$ = dependencies.jQuery || jQuery;
+
 		if ( $ === undefined ) {
 			console.log( 'GWDefaultSteppedSingleDesignee requires jQuery' );
 			return false;
@@ -729,9 +726,15 @@ let GWDefaultSteppedSingleDesignee = ( function() {
 			console.log( 'GWDefaultSteppedSingleDesignee requires .on method from jQuery version 1.7 or greater. Found v' + $.fn.jquery );
 			return false;
 		}
-		boxUpSteps();
-		attachHandlers();
+
 		initialized = true;
+
+		// On document ready
+		$( () => {
+			boxUpSteps();
+			attachHandlers();
+		} );
+
 		return true;
 	}
 	
