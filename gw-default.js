@@ -1,9 +1,7 @@
 /*global GWDefaultUserServiceCenter GWDefaultEvents */
 'use strict';
 
-let GeneralWrapper;
-
-GeneralWrapper = ( function() {
+const GeneralWrapper = ( function() {
 	let $;
 	let initialized;
 	
@@ -60,14 +58,21 @@ GeneralWrapper = ( function() {
 	function moveBodyStylesToHead() {
 		$( '.custom-styles' ).detach().appendTo( 'head' );
 	}
+
+
+	// Public
+	function hideNavLinks() {
+		$( 'nav ul' ).addClass( 'transparent' );
+	}
+
 	return {
-		init : init
+		hideNavBarLinks : hideNavBarLinks,
+		init : init,
 	};
 
 } )();
 
-let DOMUtilities;
-DOMUtilities = ( function( $ ) {
+const DOMUtilities = ( function( $ ) {
 	let self;
 	
 	self = {};
@@ -196,7 +201,7 @@ GoogleWebFonts = ( function() {
 		GoogleWebFonts.add( 'Montserrat' );
 		GoogleWebFonts.load();
 		GeneralWrapper.init( {
-			jQuery: $
+			jQuery: $,
 		} );
 		try {
 			if ( typeof GWDefaultUserServiceCenter !== 'undefined' ) {
