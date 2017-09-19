@@ -21,9 +21,14 @@ const GeneralWrapper = ( function() {
 		} else if ( !$.fn.on ) {
 			throw new Error( 'GeneralWrapper requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
 		}
-		attachEventHandlers();
-		moveBodyStylesToHead();
+
 		initialized = true;
+
+		$( () => {
+			attachEventHandlers();
+			moveBodyStylesToHead();
+		} );
+
 		return true;
 	}
 
@@ -62,11 +67,13 @@ const GeneralWrapper = ( function() {
 
 	// Public
 	function hideNavLinks() {
-		$( 'nav ul' ).addClass( 'transparent' );
+		$( () => {
+			$( 'nav ul' ).addClass( 'transparent' );
+		} );
 	}
 
 	return {
-		hideNavBarLinks : hideNavBarLinks,
+		hideNavLinks : hideNavLinks,
 		init : init,
 	};
 
@@ -195,14 +202,15 @@ GoogleWebFonts = ( function() {
 } )();
 
 ( function( $ ) {
+	GeneralWrapper.init( {
+		jQuery: $,
+	} );
+
 	function GWDefaultMain() {	
 		GoogleWebFonts.add( 'Open Sans' );
 		GoogleWebFonts.add( 'Open Sans Condensed' );
 		GoogleWebFonts.add( 'Montserrat' );
 		GoogleWebFonts.load();
-		GeneralWrapper.init( {
-			jQuery: $,
-		} );
 		try {
 			if ( typeof GWDefaultUserServiceCenter !== 'undefined' ) {
 				GWDefaultUserServiceCenter.init( { jQuery: $ } );
