@@ -1,4 +1,18 @@
 /*global GWDefaultUserServiceCenter GWDefaultEvents */
+/*
+ * v1.0.0
+ *
+ * GeneralWrapper: Takes care of basic page overhaul like dynamically purging
+ * Luminate styles, as well as any kind of shared functionality that might
+ * be useful accross Luminate applications.
+ * 
+ * DOMUtilities: This is just a static singleton that includes some helper
+ * functions for DOM stuff that's obnoxious to do and not really specific
+ * to the general wrapper.
+ *
+ * GoogleWebFonts: A wrapper object, basically, for loading Google Web Fonts
+ * onto the page. Pretty self-explanatory.
+ */
 'use strict';
 
 const GeneralWrapper = ( function() {
@@ -143,9 +157,8 @@ const DOMUtilities = ( function( $ ) {
  * GoogleWebFonts 
  * This is all vanilla JS--shouldn't be any dependencies to pass in
 */
-let GoogleWebFonts;
 
-GoogleWebFonts = ( function() {
+const GoogleWebFonts = ( function() {
 	let self;
 
 	self = {};
@@ -206,11 +219,12 @@ GoogleWebFonts = ( function() {
 		jQuery: $,
 	} );
 
-	function GWDefaultMain() {	
+	function GWDefaultOnReady() {	
 		GoogleWebFonts.add( 'Open Sans' );
 		GoogleWebFonts.add( 'Open Sans Condensed' );
 		GoogleWebFonts.add( 'Montserrat' );
 		GoogleWebFonts.load();
+		// TODO - move this to gw-default-user-service-center.js
 		try {
 			if ( typeof GWDefaultUserServiceCenter !== 'undefined' ) {
 				GWDefaultUserServiceCenter.init( { jQuery: $ } );
@@ -221,6 +235,7 @@ GoogleWebFonts = ( function() {
 			}
 		}
 		
+		// TODO - move this to gw-default-events.js
 		try {
 			if ( typeof GWDefaultEvents !== 'undefined' ) {
 				GWDefaultEvents.init( { jQuery: $ } );
@@ -232,7 +247,7 @@ GoogleWebFonts = ( function() {
 		}
 	}
 
-	$( document ).ready( function() {
+	$( () => {
 		GWDefaultMain();
 	} );
 } ) ( jQuery );
