@@ -248,6 +248,6 @@ const GoogleWebFonts = ( function() {
 	}
 
 	$( () => {
-		GWDefaultMain();
+		GWDefaultOnReady();
 	} );
 } ) ( jQuery );
