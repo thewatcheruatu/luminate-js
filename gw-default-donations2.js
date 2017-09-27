@@ -10,6 +10,13 @@ const GWDonations = ( function() {
 		frequency : null,
 		duration : null,
 	};
+	const donationLevels = {
+		recurring : {
+			annual : [],
+			monthly : [],
+		},
+		oneTime : [],
+	};
 	
 	function attachHandlers() {
 		let $donationLevels;
@@ -63,6 +70,33 @@ const GWDonations = ( function() {
 		if ( ! $donationLevels.find( 'input[type=radio]:checked' ).length ) {
 			$donationLevels.find( 'input[type=radio]' ).first().trigger( 'change' );
 		}
+
+
+		// Attach handlers to gift type selection
+		const $giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
+		const $giftDurationSelect = $( '#level_flexibleduration' );
+
+		$giftTypeRadios.add( $giftDurationSelect ).on( 'change', ( e ) => {
+			if ( ! donationLevels.oneTime.length ) {
+				return;
+			}
+			const $checkedRadio = $giftTypeRadios.filter( ':checked' );
+			const $donationLevels = $( '.donation-level-container' ).not( ':last-child' );
+			const giftDurationVal = $giftDurationSelect.val();
+
+			$donationLevels.addClass( 'hidden' );
+			if ( $checkedRadio.attr( 'id' ) === 'level_flexiblegift_type2' ) {
+				if ( ! giftDurationVal.length ) {
+					return;
+				} else if ( giftDurationVal.charAt( 0 ) === 'M' ) {
+					$( '.monthly-level' ).removeClass( 'hidden' );
+				} else if ( giftDurationVal.charAt( 0 ) === 'Y' ) {
+					$( '.annual-level' ).removeClass( 'hidden' );
+				}
+			} else {
+				$( '.one-time-level' ).removeClass( 'hidden' );
+			}
+		} );
 	}
 	
 	function donationTotalInit() {
@@ -146,6 +180,7 @@ const GWDonations = ( function() {
 			// Total Price seems to be kind of laggy, so I'm just going to replace it
 			attachHandlers();
 			miscellaneousSetup();
+			donationLevelsInit();
 			donationTotalInit();
 			handleQueryString();
 			handleDefaultState();
@@ -250,21 +285,57 @@ const GWDonations = ( function() {
 
 	}
 
-	function setMonthlyOngoing() {
-		$( () => {
-			console.log( 'setting monthly ongoing' );
-		} );
+	function setDonationLevels( frequency, amounts ) {
+		amounts = amounts.map( parseFloat );
+
+		if ( frequency === 'one-time' ) {
+			donationLevels.oneTime = amounts;
+		} else {
+			donationLevels.recurring[frequency] = amounts;
+		}
 	}
 	
+	function donationLevelsInit() {
+		const $levelContainers = $( '.donation-level-container' );
+
+		$levelContainers.each( ( i, container ) => {
+			const $container = $( container );
+			let amount;
+			
+			amount = $container.find( '.donation-level-amount-container' ).text();
+			amount = parseFloat( amount.replace( /[,$]/g, '' ) );
+			if ( isNaN( amount ) ) {
+				return;
+			}
+
+			if ( donationLevels.recurring.monthly.indexOf( amount ) >= 0 ) {
+				$container.addClass( 'monthly-level' );
+			}
+			if ( donationLevels.recurring.annual.indexOf( amount ) >= 0 ) {
+				$container.addClass( 'annual-level' );
+			}
+			if ( donationLevels.oneTime.indexOf( amount ) >= 0 ) {
+				$container.addClass( 'one-time-level' );
+			}
+		} );
+	}
+
 	return {
 		init : init,
 		set : set,
 		setDefault : setDefault,
+		setDonationLevels : setDonationLevels,
 	};
 
 } )();
 
 
+
+/*
+ *
+ *
+ *
+ */
 function GWDonationsUtilities( dependencies ) {
 	let $;
 	
@@ -292,7 +363,6 @@ function GWDonationsUtilities( dependencies ) {
 		$giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
 		$giftDurationDropdown = $( '#level_flexibleduration' );
 		$donationLevelRadios = $( 'input[name=level_flexibleexpanded]' );
-		//$donationLevelUserEntered = $( '.donation-level-user-entered' ).children( 'input[type=text]' );
 		
 		giftTypeValue = $giftTypeRadios.filter( ':checked' ).val();
 		giftDurationValue = $giftDurationDropdown.val();
@@ -347,18 +417,14 @@ function GWDonationsUtilities( dependencies ) {
 	}
 	
 	function setDonation( donation ) {
-		//let $giftTypeRadios;
 		let $giftDurationDropdown;
 		let $donationLevelAmountContainers;
-		//let $donationLevelRadios;
 		let $donationLevelUserEnteredRadio;
 		let $donationLevelUserEnteredText;
 		
 		let donationLevelRadioFound;
 		
-		//$giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
 		$giftDurationDropdown = $( '#level_flexibleduration' );
-		//$donationLevelRadios = $( 'input[name=level_flexibleexpanded]' );
 		$donationLevelUserEnteredText = $( '.donation-level-user-entered' ).children( 'input[type=text]' );
 		$donationLevelUserEnteredRadio = $donationLevelUserEnteredText.closest( '.donation-level-input-container' ).find( 'input[type=radio]' );
 		$donationLevelAmountContainers = $( '.donation-level-amount-container' );
@@ -399,53 +465,45 @@ function GWDonationsUtilities( dependencies ) {
 	
 }
 
-function SustainingFocus( dependencies, options ) {
+
+/*
+ *
+ *
+ *
+ *
+ */
+const SustainingFocus = ( () => {
 	let $;
-	
-	dependencies = dependencies || {};
-	$ = dependencies.jQuery || jQuery;
-	
-	options = options || {};
-	options.buttonizeGiftType = options.buttonizeGiftType || false;
-	
-	if ( $ === undefined ) {
-		throw new Error( 'GWDonations failed to find an instance of jQuery' );
-	} else if ( !$.fn.on ) {
-		throw new Error( 'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
-	}
+	let initialized = false;
 	
 	function attachHandlers() {
-		let $giftTypeRadios;
-		let $giftDurationRow;
-		
-		$giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
-		$giftDurationRow = $( '#level_flexibleduration_row' );
+		const $giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
+		const $giftDurationRow = $( '#level_flexibleduration_row' );
+		const $giftDurationSelect = $( '#level_flexibleduration' );
 		
 		$giftTypeRadios
 			/* 
-			 * Ensure that the recurring options dropdown is hidden when the user selects
-			 * one-time gift--no need for him/her to see that
+			 * Ensure that the recurring options dropdown is hidden when the user
+			 * select one-time gift--no need for him/her to see that
 			 */
 			.on( 'change', function() {
 				if ( $( this ).val() === '1' ) {
 					// one-time gift
 					$giftDurationRow.addClass( 'hidden' );
-					/* 
-					 * Luminate has this on the click action, so it doesn't always trigger.
-					 * Honestly, maybe it makes more sense for it to be triggered on click,
-					 * but there's no point, really, in doing this stuff if the radio button
-					 * is already selected
-					 */
-					$( '#level_flexibleduration' ).prop( 'disabled', true );
+					$giftDurationSelect.prop( 'disabled', true );
 				} else if ( $( this ).val() === '2' ) {
+					// recurring gift
 					$giftDurationRow.removeClass( 'hidden' );
-					$( '#level_flexibleduration' ).prop( 'disabled', false );
+					$giftDurationSelect.prop( 'disabled', false );
 				}
+
 				if ( $( this ).prop( 'checked' ) === false ) {
 					$( this ).parent().removeClass( 'selected' );
 				} else {
-					$( this ).parent().addClass( 'selected' )
-						.siblings( '.designated-giving-recurring-row' ).removeClass( 'selected' );
+					$( this ).parent()
+						.addClass( 'selected' )
+						.siblings( '.designated-giving-recurring-row' )
+						.removeClass( 'selected' );
 				}
 			} )
 			.filter( ':checked' ).trigger( 'change' );
@@ -455,49 +513,72 @@ function SustainingFocus( dependencies, options ) {
 	function buttonizeGiftType() {
 		$( '.designated-giving-recurring-row' )
 			.addClass( 'button' )
-			.on( 'click', function( e ) {
-				if ( $( e.target ).hasClass( 'designated-giving-recurring-row' ) ) {
-					$( e.target ).find( 'input[type=radio]' ).prop( 'checked', true ).trigger( 'change' );
+			.on( 'click', ( e ) => {
+				const $target = $( e.target );
+				if ( $target.hasClass( 'designated-giving-recurring-row' ) ) {
+					$target
+						.find( 'input[type=radio]' )
+						.prop( 'checked', true )
+						.trigger( 'change' );
 				}
 			} );
 	}
 	
-	function init() {
-		let $flexibleDurationRow;
-		let $flexibleGiftTypeRow;
-		let $levelFlexibleRow;
-		let $oneTimeGiftType;
-		let $recurringGiftType;
-		
-		$flexibleGiftTypeRow = $( '#level_flexiblegift_type_Row' );
-		if ( ! $flexibleGiftTypeRow.length ) {
-			return;
+	function init( dependencies, options ) {
+		if ( initialized ) {
+			return false;
 		}
-		$flexibleDurationRow = $( '#level_flexibleduration_row' );
-		$levelFlexibleRow = $( '#level_flexible_row' );
+
+		dependencies = dependencies || {};
+		$ = dependencies.jQuery || jQuery;
 		
-		/* 
-		 * Detach gift type and duration sections and place them at the top of #level_flexible_row
-		 * i.e., above the donation levels
-		 */
-		$flexibleDurationRow.detach().prependTo( $levelFlexibleRow );
-		$flexibleGiftTypeRow.detach().prependTo( $levelFlexibleRow );
+		options = options || {};
+		options.buttonizeGiftType = options.buttonizeGiftType || false;
 		
-		// Change order of the gift type options such that recurring appears first
-		$recurringGiftType = $( '#level_flexiblegift_type2' ).parent();
-		$oneTimeGiftType = $( '#level_flexiblegift_type1' ).parent();
-		$recurringGiftType.detach().insertBefore( $oneTimeGiftType );
-		if ( options.buttonizeGiftType ) {
-			buttonizeGiftType();
+		if ( $ === undefined ) {
+			console.log( 'GWDonations failed to find an instance of jQuery' );
+			return false;
+		} else if ( !$.fn.on ) {
+			console.log( 'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
+			return false;
 		}
+		initialized = true;
+	
+		// on document ready
+		$( () => {
+			const $flexibleGiftTypeRow = $( '#level_flexiblegift_type_Row' );
+			if ( ! $flexibleGiftTypeRow.length ) {
+				return;
+			}
+			const $flexibleDurationRow = $( '#level_flexibleduration_row' );
+			const $levelFlexibleRow = $( '#level_flexible_row' );
+			const $oneTimeGiftType = $( '#level_flexiblegift_type1' ).parent();
+			const $recurringGiftType = $( '#level_flexiblegift_type2' ).parent();
+			
+			/* 
+			 * Detach gift type and duration sections and place them above
+			 * the donation levels.
+			 */
+			$flexibleDurationRow.detach().prependTo( $levelFlexibleRow );
+			$flexibleGiftTypeRow.detach().prependTo( $levelFlexibleRow );
+			
+			// Change order of the gift type options such that recurring appears first
+			$recurringGiftType.detach().insertBefore( $oneTimeGiftType );
+			if ( options.buttonizeGiftType ) {
+				buttonizeGiftType();
+			}
+
+			attachHandlers();
+		} );
 		
-		attachHandlers();
+
+		return true;
 	}
 	
 	return {
 		init : init
 	};
-}
+} )();
 
 let GWDefaultSingleDesigneeBillingInfo = ( function() {
 	let $;
@@ -876,6 +957,10 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 ( function( $ ) {
 	try {
 		GWDonations.init( { jQuery : $ } );
+		SustainingFocus.init(
+			{ jQuery: $ }, 
+			{ buttonizeGiftType: true } 
+		);
 	} catch( error ) {
 		console.log( error );
 	}
@@ -883,8 +968,6 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 	// on document load
 	$( function() {
 		let $selects;
-		let sustainingFocus;
-		
 		
 		$selects = $( 'select' );
 		if ( $selects.length ) {
@@ -904,14 +987,6 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 			
 		}
 		
-		try {
-			sustainingFocus = new SustainingFocus( 
-				{ jQuery: $ }, 
-				{ buttonizeGiftType: true } );
-			sustainingFocus.init();
-		} catch ( error ) {
-			console.log( error );
-		}
 	} );
 	
 } )( jQuery );

@@ -1,1 +1,4 @@
 *.swp
+*.gulp.js
+*.transpiled.js
+*.min.js
