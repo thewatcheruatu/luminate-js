@@ -4,7 +4,6 @@
 
 const GWDonations = ( function() {
 	let $;
-	let gwDonationsUtilities;
 	let initialized = false;
 
 	const defaultState = {
@@ -152,9 +151,9 @@ const GWDonations = ( function() {
 				) {
 					return;
 				}
-				donationTotal = gwDonationsUtilities.calculateDonationTotal();
+				donationTotal = GWDonationsUtilities.calculateDonationTotal();
 				$donationLevelTotalReplacement.html( 
-					gwDonationsUtilities.formatDonationTotal( donationTotal )
+					GWDonationsUtilities.formatDonationTotal( donationTotal )
 				);
 			} 
 		);
@@ -209,7 +208,6 @@ const GWDonations = ( function() {
 		}
 	
 		initialized = true;
-		gwDonationsUtilities = GWDonationsUtilities( { jQuery: $ } );
 		
 		// On document ready
 		$( () => {
@@ -370,14 +368,27 @@ const GWDonations = ( function() {
  * Generally, tools for working with donation totals. Calculating. Setting.
  *
  */
-function GWDonationsUtilities( dependencies ) {
+const GWDonationsUtilities = ( () => {
 	let $;
+	let initialized = false;
 	
-	dependencies = dependencies || {};
-	$ = dependencies.jQuery || jQuery;
-	
-	if ( $ === undefined ) {
-		throw new Error( 'GWDonationsUtilities failed to find an instance of jQuery' );
+	function init( dependencies ) {
+		if ( initialized ) {
+			return false;
+		}
+
+		dependencies = dependencies || {};
+		$ = dependencies.jQuery || jQuery;
+		
+		if ( $ === undefined ) {
+			console.log( 
+				'GWDonationsUtilities failed to find an instance of jQuery' 
+			);
+			return false;
+		} 
+
+		initialized = true;
+		return true;
 	}
 	
 	function calculateDonationTotal() {
@@ -405,14 +416,29 @@ function GWDonationsUtilities( dependencies ) {
 		
 		$donationLevelSelected = $donationLevelRadios.filter( ':checked' );
 		if ( $donationLevelSelected.length ) {
-			$donationLevelInputContainer = $donationLevelSelected.parent( '.donation-level-label-input-container' );
-			if ( $donationLevelInputContainer.siblings( '.donation-level-user-entered' ).length ) {
+			$donationLevelInputContainer = $donationLevelSelected
+				.parent( '.donation-level-label-input-container' );
+
+			if ( 
+				$donationLevelInputContainer
+					.siblings( '.donation-level-user-entered' )
+					.length 
+			) {
 				giftAmount = parseFloat( 
-						$donationLevelInputContainer.parent().find( 'input[type=text]' ).val()
-							.replace( /[$]/gi, '' ) 
-					) || 0;
+					$donationLevelInputContainer
+						.parent()
+						.find( 'input[type=text]' )
+						.val()
+						.replace( /[$]/gi, '' ) 
+				) || 0;
 			} else {
-				giftAmount = parseFloat( $donationLevelInputContainer.siblings( 'label' ).find( '.donation-level-amount-container' ).text().replace( /[$,]/gi, '' ) );
+				giftAmount = parseFloat( 
+					$donationLevelInputContainer
+						.siblings( 'label' )
+						.find( '.donation-level-amount-container' )
+						.text()
+						.replace( /[$,]/gi, '' ) 
+				);
 			}
 		}
 
@@ -443,9 +469,8 @@ function GWDonationsUtilities( dependencies ) {
 	}
 	
 	function formatDonationTotal( donationTotal ) {
-		let formatted;
-		formatted = GWUtilities.formatMoney( donationTotal.amount ) 
-		          + ( donationTotal.frequency !== '' ? '/' + donationTotal.frequency : '' );
+		const formatted = GWUtilities.formatMoney( donationTotal.amount ) +
+			( donationTotal.frequency !== '' ? '/' + donationTotal.frequency : '' );
 		return formatted;
 	}
 	
@@ -458,8 +483,11 @@ function GWDonationsUtilities( dependencies ) {
 		let donationLevelRadioFound;
 		
 		$giftDurationDropdown = $( '#level_flexibleduration' );
-		$donationLevelUserEnteredText = $( '.donation-level-user-entered' ).children( 'input[type=text]' );
-		$donationLevelUserEnteredRadio = $donationLevelUserEnteredText.closest( '.donation-level-input-container' ).find( 'input[type=radio]' );
+		$donationLevelUserEnteredText = $( '.donation-level-user-entered' )
+			.children( 'input[type=text]' );
+		$donationLevelUserEnteredRadio = $donationLevelUserEnteredText
+			.closest( '.donation-level-input-container' )
+			.find( 'input[type=radio]' );
 		$donationLevelAmountContainers = $( '.donation-level-amount-container' );
 		
 		if ( !$donationLevelAmountContainers.length ) {
@@ -468,24 +496,32 @@ function GWDonationsUtilities( dependencies ) {
 		
 		donationLevelRadioFound = false;
 		$donationLevelAmountContainers.each( function() {
-			let thisAmount = parseFloat( $( this ).text().trim().replace( /[$,]/g, '' ) );
+			const thisAmount = parseFloat( 
+				$( this ).text().trim().replace( /[$,]/g, '' ) 
+			);
 			if ( donation.amount === thisAmount ) {
 				donationLevelRadioFound = true;
 			}
 		} );
 
 		if ( ! donationLevelRadioFound ) {
-			$donationLevelUserEnteredRadio.prop( 'checked', true ).trigger( 'change' );
+			$donationLevelUserEnteredRadio
+				.prop( 'checked', true )
+				.trigger( 'change' );
 			$donationLevelUserEnteredText.val( donation.amount ).trigger( 'change' );
 		}
 		
 		if ( donation.frequency === '' ) {
 			return;
 		}
-		$( '#level_flexiblegift_type2' ).prop( 'checked', true ).trigger( 'change' );
+		$( '#level_flexiblegift_type2' )
+			.prop( 'checked', true )
+			.trigger( 'change' );
+
 		if ( donation.frequency === 'monthly' ) {
 			$giftDurationDropdown.val( 'M:0' );
 		}
+
 		$giftDurationDropdown.trigger( 'change' );
 		
 	}
@@ -493,10 +529,11 @@ function GWDonationsUtilities( dependencies ) {
 	return {
 		calculateDonationTotal: calculateDonationTotal,
 		formatDonationTotal: formatDonationTotal,
+		init : init,
 		setDonation: setDonation
 	};
 	
-}
+} )();
 
 
 /*
@@ -709,7 +746,9 @@ let GWDefaultSingleDesigneeBillingInfo = ( function() {
 			}
 		}
 
-		// We have all required fields, so make a new docfrag for streamlined display
+		/* We have all required fields, so make a new docfrag for 
+		 * streamlined display
+		 */
 		docfrag = document.createDocumentFragment(); //probably don't need this
 		docfragHtml = [];
 		for ( let i = 0; i < allFields.length; i++ ) {
@@ -975,11 +1014,9 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 	
 	function stepNavigatorAssignGiftDetails() {
 		let donationTotal;
-		let gwDonationsUtilities;
 		
-		gwDonationsUtilities = GWDonationsUtilities( { jQuery: $ } );
-		donationTotal = gwDonationsUtilities.calculateDonationTotal();
-		$( '#step-navigator-gift-details' ).text( gwDonationsUtilities.formatDonationTotal( donationTotal ) );
+		donationTotal = GWDonationsUtilities.calculateDonationTotal();
+		$( '#step-navigator-gift-details' ).text( GWDonationsUtilities.formatDonationTotal( donationTotal ) );
 	}
 	
 	return {
@@ -990,6 +1027,7 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 
 ( function( $ ) {
 	try {
+		GWDonationsUtilities.init( { jQuery : $ } );
 		GWDonations.init( { jQuery : $ } );
 		SustainingFocus.init(
 			{ jQuery: $ }, 
