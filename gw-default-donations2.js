@@ -1,10 +1,12 @@
 /* global GWUtilities, GWMockSelectionLists */
 
 'use strict';
+
 const GWDonations = ( function() {
 	let $;
 	let gwDonationsUtilities;
-	let initialized;
+	let initialized = false;
+
 	const defaultState = {
 		recurring : false,
 		frequency : null,
@@ -19,43 +21,56 @@ const GWDonations = ( function() {
 	};
 	
 	function attachHandlers() {
-		let $donationLevels;
-		
-		$donationLevels = $( '.donation-levels' );
+		const $donationLevels = $( '.donation-levels' );
+
 		$donationLevels
 			.on( 'click', '.donation-level-container', function( e ) {
-				let $target;
-				let $childRadioButton;
-				
-				$target = $( e.target );
+				const $target = $( e.target );
+
 				if ( $target.is( 'input, label' ) ) {
 					return;
 				}
-				$childRadioButton = $target.find( 'input[type=radio]' );
-				$childRadioButton.prop( 'checked', true ).trigger( 'change' ).trigger( 'focus' );
+
+				const $childRadioButton = $target.find( 'input[type=radio]' );
+				$childRadioButton
+					.prop( 'checked', true )
+					.trigger( 'change' )
+					.trigger( 'focus' );
 			} )
+
 			.on( 'change', 'input[type=radio]', function( e ) {
-				let $donationLevelContainer;
-				let $userEnteredTextbox;
-				
+				const $target = $( e.target );
 				// Only proceed if a radio button in the group is actually checked
-				if ( ! $( e.target ).prop( 'checked' ) ) {
+				if ( ! $target.prop( 'checked' ) ) {
 					return;
 				}
-				$donationLevelContainer = $( e.target ).closest( '.donation-level-container' );
-				$donationLevelContainer.addClass( 'selected' ).siblings( '.donation-level-container' ).removeClass( 'selected' );
+
+				const $donationLevelContainer = $target
+					.closest( '.donation-level-container' );
+
+				$donationLevelContainer
+					.addClass( 'selected' )
+					.siblings( '.donation-level-container' )
+					.removeClass( 'selected' );
 				
 				/*
 				 * If text box for custom user amount is an available option...
 				 * then we want to ensure it's pulled from the tab index unless...
 				 * "Other Amount" is the selected radio button, in order to prevent...
-				 * the user from tabbing to it and unexpectedly selecting "Other Amount".
+				 * the user from tabbing to it and unexpectedly selecting 
+				 * "Other Amount".
 				 */
-				$userEnteredTextbox = $( '.donation-level-user-entered input[type=text]' );
+				const $userEnteredTextbox = $( 
+					'.donation-level-user-entered input[type=text]' 
+				);
+
 				if ( ! $userEnteredTextbox.length ) {
 					return;
 				}
-				if ( $donationLevelContainer.find( '.donation-level-user-entered' ).length ) {
+
+				if ( $donationLevelContainer
+						.find( '.donation-level-user-entered' )
+						.length ) {
 					$userEnteredTextbox.attr( 'tabindex', '' );
 					return;
 				} else {
@@ -64,11 +79,15 @@ const GWDonations = ( function() {
 			} );
 			
 		/*
-		 * Want to ensure that the tab index is negative for the user donation level textfield.
+		 * Want to ensure that the tab index is negative for the 
+		 * user donation level textfield.
 		 * This conditional probably isn't necessary.
 		 */
 		if ( ! $donationLevels.find( 'input[type=radio]:checked' ).length ) {
-			$donationLevels.find( 'input[type=radio]' ).first().trigger( 'change' );
+			$donationLevels
+				.find( 'input[type=radio]' )
+				.first()
+				.trigger( 'change' );
 		}
 
 
@@ -80,11 +99,14 @@ const GWDonations = ( function() {
 			if ( ! donationLevels.oneTime.length ) {
 				return;
 			}
+
 			const $checkedRadio = $giftTypeRadios.filter( ':checked' );
-			const $donationLevels = $( '.donation-level-container' ).not( ':last-child' );
+			const $donationLevels = $( '.donation-level-container' )
+				.not( ':last-child' );
 			const giftDurationVal = $giftDurationSelect.val();
 
 			$donationLevels.addClass( 'hidden' );
+
 			if ( $checkedRadio.attr( 'id' ) === 'level_flexiblegift_type2' ) {
 				if ( ! giftDurationVal.length ) {
 					return;
@@ -100,35 +122,42 @@ const GWDonations = ( function() {
 	}
 	
 	function donationTotalInit() {
-		let $donationLevelTotalDefault;
-		let $donationLevelTotalReplacement;
-		
-		$donationLevelTotalDefault = $( '.donation-level-total-amount' ).addClass( 'hidden' );
-		$donationLevelTotalReplacement = $( '<span>' ).attr( 'id', 'donation-level-total-amount-replacement' );
+		const $donationLevelTotalDefault = $( '.donation-level-total-amount' )
+			.addClass( 'hidden' );
+		const $donationLevelTotalReplacement = $( '<span>' )
+			.attr( 'id', 'donation-level-total-amount-replacement' );
 		
 		$donationLevelTotalDefault.after( $donationLevelTotalReplacement );
 		
-		let $giftTypeRadios;
-		let $giftDurationDropdown;
-		let $donationLevelRadios;
-		let $donationLevelUserEntered;
+		const $giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
+		const $giftDurationDropdown = $( '#level_flexibleduration' );
+		const $donationLevelRadios = $( 'input[name=level_flexibleexpanded]' );
+		const $donationLevelUserEntered = $( '.donation-level-user-entered' )
+			.children( 'input[type=text]' );
 		
-		$giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
-		$giftDurationDropdown = $( '#level_flexibleduration' );
-		$donationLevelRadios = $( 'input[name=level_flexibleexpanded]' );
-		$donationLevelUserEntered = $( '.donation-level-user-entered' ).children( 'input[type=text]' );
-		
-		$( 'body' ).on( 'change keyup', [ $giftTypeRadios, $giftDurationDropdown, $donationLevelRadios, $donationLevelUserEntered ], function( e ) {	
-			let donationTotal;
-			// Want to ignore keyup unless it's on the custom amount field
-			if ( e.type === 'keyup' && ( ! e.target.type || e.target.type !== 'text' ) ) {
-				return;
-			}
-			donationTotal = gwDonationsUtilities.calculateDonationTotal();
-			$donationLevelTotalReplacement.html( 
-				gwDonationsUtilities.formatDonationTotal( donationTotal )
-			);
-		} );
+		$( 'body' ).on( 
+			'change keyup', 
+			[ 
+				$giftTypeRadios, 
+				$giftDurationDropdown, 
+				$donationLevelRadios, 
+				$donationLevelUserEntered 
+			], 
+			function( e ) {	
+				let donationTotal;
+				// Want to ignore keyup unless it's on the custom amount field
+				if ( 
+					e.type === 'keyup' && 
+					( ! e.target.type || e.target.type !== 'text' ) 
+				) {
+					return;
+				}
+				donationTotal = gwDonationsUtilities.calculateDonationTotal();
+				$donationLevelTotalReplacement.html( 
+					gwDonationsUtilities.formatDonationTotal( donationTotal )
+				);
+			} 
+		);
 	}
 
 	function handleDefaultState() {
@@ -144,7 +173,10 @@ const GWDonations = ( function() {
 	 */
 	function handleQueryString() {
 		const optionalRepeat = GWUtilities.queryString.get( 'set.OptionalRepeat' );
-		const flexibleDuration = GWUtilities.queryString.get( 'set.FlexibleDuration' );
+		const flexibleDuration = GWUtilities
+			.queryString
+			.get( 'set.FlexibleDuration' );
+
 		if ( optionalRepeat ) {
 			setDefault( 'recurring', true );
 			if ( flexibleDuration ) {
@@ -159,20 +191,24 @@ const GWDonations = ( function() {
 	}
 	
 	function init( dependencies ) {
+		if ( initialized ) {
+			return false;
+		}
+
 		dependencies = dependencies || {};
 		$ = dependencies.jQuery || jQuery;
 		
 		if ( $ === undefined ) {
-			throw new Error( 'GWDonations failed to find an instance of jQuery' );
+			console.log( 'GWDonations failed to find an instance of jQuery' );
+			return false;
 		} else if ( !$.fn.on ) {
-			throw new Error( 'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery );
+			console.log( 
+				'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery 
+			);
+			return false;
 		}
 	
-		// Second check is redundant, but leaving it for now
-		if ( initialized || $( 'body' ).hasClass( 'gw-donations-ready' ) ) {
-			return true;
-		}
-
+		initialized = true;
 		gwDonationsUtilities = GWDonationsUtilities( { jQuery: $ } );
 		
 		// On document ready
@@ -188,7 +224,6 @@ const GWDonations = ( function() {
 			$( 'body' ).addClass( 'gw-donations-ready' );
 		} );
 
-		initialized = true;
 		return true;
 	}
 	
@@ -201,8 +236,10 @@ const GWDonations = ( function() {
 		
 		$giftTypeRow = $( '#level_flexiblegift_type_Row' );
 		if ( $giftTypeRow.length ) {
-			$giftTypeRow.removeClass( 'field-required' );
-			$giftTypeRow.find( 'legend' ).prepend( '<span class="field-required"></span>' );
+			$giftTypeRow
+				.removeClass( 'field-required' )
+				.find( 'legend' )
+				.prepend( '<span class="field-required"></span>' );
 		}
 		
 	}
@@ -211,8 +248,10 @@ const GWDonations = ( function() {
 		let $billingAddressState;
 		querystringSetComments();
 		
-		// Add checkbox to control State field for international addresses
-		// Move this to a new function if you ever add anything else to this miscellaneous function
+		/* Add checkbox to control State field for international addresses 
+		 * Move this to a new function if you ever add anything else 
+		 * to this miscellaneous function
+		*/
 		$billingAddressState = $( '#billing_addr_state' );
 		if ( ! $billingAddressState.length ) {
 			return;
@@ -221,9 +260,8 @@ const GWDonations = ( function() {
 		$( '<div id="billing_addr_outside_us" class="form-row"><input type="checkbox" id="international-address">My credit card / billing address is outside the U.S. or Canada</div>' )
 			.insertBefore( '#billing_addr_state_row' );
 		$( '#international-address' ).on( 'change', function() {
-			let $internationalAddress;
-			$internationalAddress = $( this );
-			console.log( 'changed to value', $internationalAddress.prop( 'checked' ) );
+			const $internationalAddress = $( this );
+
 			if ( $internationalAddress.prop( 'checked' ) ) {
 				$billingAddressState.val( 'None' ).trigger( 'change' );
 			} else if ( $billingAddressState.val() === 'None' ) {
@@ -245,9 +283,6 @@ const GWDonations = ( function() {
 			return;
 		}
 		$commentsField.val( comments );
-	}
-
-	function set( property, value ) {
 	}
 
 	function setDefault( property, value ) {
@@ -322,7 +357,6 @@ const GWDonations = ( function() {
 
 	return {
 		init : init,
-		set : set,
 		setDefault : setDefault,
 		setDonationLevels : setDonationLevels,
 	};
@@ -333,7 +367,7 @@ const GWDonations = ( function() {
 
 /*
  *
- *
+ * Generally, tools for working with donation totals. Calculating. Setting.
  *
  */
 function GWDonationsUtilities( dependencies ) {
@@ -350,7 +384,6 @@ function GWDonationsUtilities( dependencies ) {
 		let $donationLevelInputContainer;
 		let $donationLevelRadios;
 		let $donationLevelSelected;
-		//let $donationLevelUserEntered;
 		let $giftTypeRadios;
 		let $giftDurationDropdown;
 		
@@ -468,8 +501,9 @@ function GWDonationsUtilities( dependencies ) {
 
 /*
  *
- *
- *
+ * Detaches recurring/one-time radios (and makes them look more like buttons)
+ * and by extension, the recurring frequency selection list,  
+ * and places them above the donation levels.
  *
  */
 const SustainingFocus = ( () => {
