@@ -916,6 +916,10 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 			.add( '#donor_email_opt_in_Row' )
 			.add( '#donor_remember_me_row' )
 			.add( '#billing-info-response-list' );
+		$( '#tribute_show_honor_fields_row' )
+			.prepend( '<h3>Honor and Memorial Gifts' );
+		$( '.matching-gift-container' )
+			.prepend( '<h3>Employer Matching Gifts' );
 		$additionalSections = $( '#tribute_show_honor_fields_row' )
 			.add( 'div[id^=tribute]' )
 			.add( '.matching-gift-container' );
@@ -964,7 +968,19 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		options.activeStep = options.activeStep || 1;
 		$( '.form-progress-bar' ).next( '.form-row' ).after( allStepsDocFrag );
 		$( '#pstep_next' ).html( 'Next: Confirm &amp; Submit' );
-		$( '.section-header-container, #payment_cc_container > h3' ).remove();
+		$( '.section-header-container, #payment_cc_container > h3' )
+			/*
+			.filter( ( x, secHead ) => {
+				const secHeadText = $( secHead ).text();
+				if ( secHeadText.indexOf( 'Honor' ) > 0 ||
+					secHeadText.indexOf( 'Employer' ) > 0 ) {
+					return false;
+				}
+
+				return true;
+			} )
+			*/
+			.remove();
 		goToStep( options.activeStep );
 	}
 	
