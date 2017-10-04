@@ -865,7 +865,7 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		}
 	}
 	
-	function init( dependencies ) {
+	function init( dependencies, stepOrder ) {
 		if ( initialized ) {
 			console.log( 'GWDefaultSteppedSingleDesignee has already been initialized' );
 			return false;
@@ -882,24 +882,22 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		}
 
 		initialized = true;
-
 		// On document ready
 		$( () => {
-			boxUpSteps();
+			boxUpSteps( stepOrder );
 			attachHandlers();
 		} );
 
 		return true;
 	}
 	
-	function boxUpSteps( options ) {
+	function boxUpSteps( stepOrder, options ) {
 		let $designeeSections;
 		let $billingInfoSections;
 		let $giftDetailsSections;
 		let $additionalSections;
 		let $paymentInfoSections;
 		let allStepsDocFrag;
-		let i;
 		let stepDiv;
 		let stepNavigator;
 		let steps = [];
@@ -925,34 +923,57 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 			.add( '.matching-gift-container' );
 		$paymentInfoSections = $( '.payment-type-element-container, .button-container' );
 
-		i = 1;
-		steps.push( {
-			items: $designeeSections,
-			heading: 'Your Designee'
-		} );
-		steps.push( {
-			items: $giftDetailsSections,
-			heading: 'Gift Details'
-		} );
-		steps.push( {
-			items: $billingInfoSections,
-			heading: 'Billing Information'
-		} );
-		if ( $additionalSections.length ) {
+		const defaultStepOrder = [
+			'designee',
+			'gift',
+			'billing',
+			'additional',
+			'payment'
+		];
+
+		stepOrder = stepOrder || defaultStepOrder;
+
+		for ( let j = 0; j < stepOrder.length; j++ ) {
+			let $items;
+			let heading;
+
+			switch ( stepOrder[j] ) {
+			case 'designee' :
+				$items = $designeeSections;
+				heading = 'Your Designee';
+				break;
+			case 'gift' :
+				$items = $giftDetailsSections;
+				heading = 'Gift Details';
+				break;
+			case 'billing' :
+				$items = $billingInfoSections;
+				heading = 'Billing Information';
+				break;
+			case 'additional' :
+				$items = $additionalSections;
+				heading = 'Additional Information';
+				break;
+			case 'payment' :
+				$items = $paymentInfoSections;
+				heading = 'Credit Card Information';
+				break;
+			}
+
+			if ( ! $items.length ) {
+				continue;
+			}
+
 			steps.push( {
-				items: $additionalSections,
-				heading: 'Additional Information'
+				items : $items,
+				heading : heading
 			} );
 		}
-		steps.push( {
-			items: $paymentInfoSections,
-			heading: 'Credit Card Information'
-		} );
 		
 		allStepsDocFrag = document.createDocumentFragment();
 		stepNavigator = makeStepNavigator( steps );
 		allStepsDocFrag.appendChild( stepNavigator );
-		for ( i = 0; i < steps.length; i++ ) {
+		for ( let i = 0; i < steps.length; i++ ) {
 			stepDiv = makeStepDiv( steps[i].items, i + 1, steps[i].heading );
 			if ( i + 1 < steps.length ) {
 				$( stepDiv ).append( '<button class="next-step goto-step" data-this-step="' + ( i + 1 ) + '" data-goto="' + ( i + 2 ) + '">Next: ' + steps[i+1].heading + '</button>' );
