@@ -183,6 +183,20 @@ const GWUtilities = ( function( $ ) {
 		}
 		return this.queryStringLookup[parameter];
 	};
+
+	self.shuffle = function( array ) {
+		for ( let i = array.length - 1; i >= 0; i-- ) {
+			const randomIndex = Math.floor( Math.random() * ( i + 1 ) );
+			if ( randomIndex === i ) {
+				continue;
+			}
+			const swappedElement = array[randomIndex];
+			array[randomIndex] = array[i];
+			array[i] = swappedElement;
+		}
+
+		return array;
+	};
 	
 	function padArrayToLength( a, l, v ) {
 		let temp;
