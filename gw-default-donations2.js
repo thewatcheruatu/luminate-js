@@ -163,6 +163,12 @@ const GWDonations = ( function() {
 		if ( defaultState.recurring ) {
 			setFlexibleDuration( defaultState.frequency, defaultState.duration );
 		}
+
+		/*
+		 * Need to make sure we handle the flexible donation amount if it
+		 * was set by default in the form configuration.
+		 */
+		$( 'input[name=level_flexibleexpanded]:checked' ).trigger( 'change' );
 	}
 	
 	/*
