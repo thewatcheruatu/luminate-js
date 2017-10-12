@@ -1,4 +1,4 @@
-/* globals gwProgress, gwUtilities */
+/* globals gwProgress, GWUtilities */
 'use strict';
 
 /*
@@ -42,8 +42,6 @@ const CrowdfundingHome = ( () => {
 		function _onDocumentReady() {
 			$homepage = $( '#crowdfunding-homepage' );
 
-			$( '.progress-meter-stub' ).each( _makeProgressMeterStub );
-			
 			$( '.crowdfunding-campaign' )
 				.not( '.active-campaign' )
 				.find( '.campaign-details' )
@@ -87,22 +85,11 @@ const CrowdfundingHome = ( () => {
 			} );
 		}
 		
-		function _makeProgressMeterStub( i, element ) {
-			if ( typeof gwProgress === 'undefined' ) {
-				errors.push( new Error( 'gwProgress not available' ) );
-				return false;
-			}
-			const goal = $( element ).data( 'goal' );
-			const current = $( element ).data( 'amount-raised' );
-			const progressMeter = new gwProgress.meter( 0, goal, current );
-			progressMeter.draw( element );
-		}
-
 		function _randomizeCampaigns() {
 			let campaigns;
 
 			campaigns = $( '.crowdfunding-campaign' ).detach();
-			campaigns = gwUtilities.array.shuffle( campaigns );
+			campaigns = GWUtilities.shuffle( campaigns );
 			campaigns.each( function() {
 				$( '#crowdfunding-campaign-tiles' ).append( this );
 			} );
@@ -155,7 +142,13 @@ const CrowdfundingLanding = ( () => {
 			}
 
 			$ = d.jQuery;
-			$( _onDocumentReady );
+			GWUtilities.loadClass( 'GWAnimation' )
+				.then( () => {
+					$( _onDocumentReady );
+				} )
+				.catch( ( error ) => {
+					console.log( error.message );
+				} );
 
 			initialized = true;
 		}
@@ -222,7 +215,7 @@ const CrowdfundingLanding = ( () => {
 			
 			
 			// Check the query string for a requested crowdfunder
-			queriedCrowdfunder = gwUtilities.queryString.get( 'crowdfunder' );
+			queriedCrowdfunder = GWUtilities.queryString.get( 'crowdfunder' );
 			if ( ! queriedCrowdfunder ) {
 				return;
 			}
@@ -273,15 +266,26 @@ const CrowdfundingLanding = ( () => {
 
 
 		function _initializeProgressMeters() {
-			const goalDollars = $( '#goal-dollars' );
-			const goalDollarsFormatted = 
-				'$' + ( parseInt( goalDollars.text(), 10 ) / 100 ).formatMoney( 0 );
-			const progressDollars = $( '#progress-dollars' );
-			const amountRaised = parseInt( progressDollars.text(), 10 );
+			const $goalDollars = $( '#goal-dollars' );
+			const goalDollarsFormatted = GWUtilities.formatMoney(
+				( parseInt( $goalDollars.text(), 10 ) / 100 ),
+				{ displayCents : false }
+			);
+			const $progressDollars = $( '#progress-dollars' );
+			const amountRaised = parseInt( $progressDollars.text(), 10 ) / 100;
 
-			goalDollars.html( goalDollarsFormatted ).removeClass( 'hidden' );
-			progressDollars.removeClass( 'hidden' );
-			gwUtilities.number.rampUpDollars( '#progress-dollars', 0, amountRaised/100 );
+			$goalDollars.html( goalDollarsFormatted ).removeClass( 'hidden' );
+			$progressDollars.removeClass( 'hidden' );
+			//gwUtilities.number.rampUpDollars( '#progress-dollars', 0, amountRaised/100 );
+			if ( GWAnimation ) {
+				GWAnimation.Ease.do( new Date(), 0, amountRaised, 3000, {}, ( currentValue ) => {
+					$progressDollars.html( 
+						GWUtilities.formatMoney( currentValue, { displayCents : false } ) 
+					);
+				} );
+			} else {
+				$progressDollars.html( GWUtilities.formatMoney( currentValue, { displayCents : false }) );
+			}
 		}	
 
 
@@ -473,6 +477,34 @@ const Crowdfunding = ( () => {
 			.css( 'z-index', ++overlayZIndex );
 		} );
 	}
+
+	function _makeProgressMeterStub( i, element ) {
+		const $stub = $( element );
+		const goal = $( element ).data( 'goal' );
+		const current = $( element ).data( 'amount-raised' );
+
+		if ( $stub.attr( 'id' ) === undefined ) {
+			$stub.attr( 'id', 'progress-meter-' + Math.round( Math.random() * 10000 ) );
+		}
+
+		GWUtilities.loadClass( 'GWProgressMeters' )
+			.then( () => {
+				const gwProgressMeters = new GWProgressMeters( 
+					{ jQuery : $, GWUtilities : GWUtilities } 
+				);
+				const campaignMeter = new gwProgressMeters.ProgressMeter(
+					'#' + $stub.attr( 'id' ),
+					{ delayFill : 500 }
+				);
+				campaignMeter.init( {
+					goal : goal,
+					current : current
+				} );
+			} )
+			.catch( ( error ) => {
+				console.log( error.message );
+			} );
+	}
 	
 	function _onDocumentReady() {
 		const $crowdfundingHomepage = $( '#crowdfunding-homepage' );
@@ -487,7 +519,11 @@ const Crowdfunding = ( () => {
 		if ( $crowdfundingHomepage.length ) {	
 			CrowdfundingHome.getInstance().init( { jQuery : $ } );
 		}
+
+		GWUtilities.loadStylesheet( 'https://growlfrequency.com/work/luminate/css/gwu_wrpr/crowdfunding.css' );
 	
+		$( '.progress-meter-stub' ).each( _makeProgressMeterStub );
+			
 		_initializeSocialLinks();
 		
 		$( '.view-more-link' ).on( 'click', function( e ) {

@@ -66,6 +66,7 @@ const GWUtilities = ( function( $ ) {
 	self.loadedStylesheets = [];
 	self.loadedScripts = [];
 	self.knownClasses = {
+		'GWAnimation' : 'gw-animation.min.js',
 		'GWMockSelectionLists' : 'gw-mock-selection-lists.js',
 		'GWModals' : 'gw-modals.js',
 		'GWProgressMeters' : 'gw-progress-meters.js'
@@ -75,7 +76,7 @@ const GWUtilities = ( function( $ ) {
 		options = options || {};
 		options.prefix = options.prefix || '$';
 		options.displayCents = options.displayCents !== undefined ? options.diplayCents : true;
-		options.scale = options.dislayCents !== false ? 2 : 0;
+		options.scale = options.dislayCents === true ? 2 : 0;
 		return self.formatNumber( number, options );
 	};
 	
@@ -156,13 +157,21 @@ const GWUtilities = ( function( $ ) {
 		}
 		self.loadedStylesheets.push( href );
 		
-		thisPath = document.location.pathname;
-		if ( thisPath.indexOf( 'gwu/' ) >= 0 ) {
-			thisPath = thisPath.substring( 0, thisPath.indexOf( 'gwu/' ) + 4 ) + 'css';
-		} else if ( thisPath.indexOf( 'site/' ) >= 0 ) {
-			thisPath = thisPath.substring( 0, thisPath.indexOf( 'site/' ) ) + 'css';
+		/*
+		 * Build the URL for internal stylesheets.
+		 * If it is an external stylesheet, we can skip this part.
+		 */
+		if ( href.indexOf( 'http' ) !== 0 ) {
+			thisPath = document.location.pathname;
+			if ( thisPath.indexOf( 'gwu/' ) >= 0 ) {
+				thisPath = thisPath.substring( 0, thisPath.indexOf( 'gwu/' ) + 4 ) + 
+					'css';
+			} else if ( thisPath.indexOf( 'site/' ) >= 0 ) {
+				thisPath = thisPath.substring( 0, thisPath.indexOf( 'site/' ) ) + 
+					'css';
+			}
+			href = thisPath + href;
 		}
-		href = thisPath + href;
 		$( '<link>' )
 			.attr( 'rel', 'stylesheet' )
 			.attr( 'type', 'text/css' )
