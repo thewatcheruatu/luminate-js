@@ -833,9 +833,10 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		stepNavigatorAssignGiftDetails();
 	}
 	
-	function goToStep( stepNum ) {
+	function goToStep( stepNum, doScroll ) {
 		let currentStep;
 		let destinationStep;
+		doScroll = doScroll === undefined ? true : doScroll;
 		
 		currentStep = $( '.donation-form-step' ).filter( function() { 
 			return ! $( this ).hasClass( 'hidden' );
@@ -851,7 +852,9 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		destinationStep.removeClass( 'hidden' );
 		$( '.step-navigator-goto' ).removeClass( 'selected' );
 		$( '#step-navigator-step-' + stepNum ).addClass( 'selected' );
-		scrollTo( '#step-navigator' );
+		if ( doScroll ) {
+			scrollTo( '#step-navigator' );
+		}
 	}
 	
 	function scrollTo( thing, options ) {
@@ -995,20 +998,9 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		options.activeStep = options.activeStep || 1;
 		$( '.form-progress-bar' ).next( '.form-row' ).after( allStepsDocFrag );
 		$( '#pstep_next' ).html( 'Next: Confirm &amp; Submit' );
-		$( '.section-header-container, #payment_cc_container > h3' )
-			/*
-			.filter( ( x, secHead ) => {
-				const secHeadText = $( secHead ).text();
-				if ( secHeadText.indexOf( 'Honor' ) > 0 ||
-					secHeadText.indexOf( 'Employer' ) > 0 ) {
-					return false;
-				}
+		$( '.section-header-container, #payment_cc_container > h3' ).remove();
 
-				return true;
-			} )
-			*/
-			.remove();
-		goToStep( options.activeStep );
+		goToStep( options.activeStep, false );
 	}
 	
 	function makeStepNavigator( steps ) {
