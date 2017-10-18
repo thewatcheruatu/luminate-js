@@ -65,7 +65,7 @@ const CrowdfundingHome = ( () => {
 				$homepage.prepend( 
 					'<h2 style="text-align: center;">Colonial Crowdfunding harnesses ' +
 					'the power of the GW network to support student-led projects and ' +
-					'ventures. Spring semester projects closed April 23.</h2>'
+					'ventures.</h2>'
 				);
 			}
 		}
@@ -158,7 +158,7 @@ const CrowdfundingLanding = ( () => {
 		function _calculateTimeRemaining() {
 			const now = new Date();
 			const utcNow = now.getTime();
-			const utcEnd = Date.UTC( 2017,3,24,4,59,59,0 );
+			const utcEnd = Date.UTC( 2019,3,24,4,59,59,0 );
 			let diff = utcEnd - utcNow;
 
 			// 15 days
@@ -297,6 +297,22 @@ const CrowdfundingLanding = ( () => {
 			//initializeCrowdfunders();
 			_initializeProgressMeters();
 			_initializeIntervals();
+
+			// Initialize "Read More" option on descriptions
+			const $description = $( '.description' );
+			$description
+				.addClass( 'preview' )
+				.append( 
+				'<div class="read-more-container"><button class="read-more">' +
+				'Read More</button></div>' 
+				);
+
+			$( '.read-more' ).on( 'click', ( e ) => {
+				e.preventDefault();
+				//const $moreButton = $( e.target );
+				$( '.read-more-container' ).addClass( 'hidden' );
+				$description.removeClass( 'preview' );
+			} );
 
 			if ( 
 				$splashPage.hasClass( 'completed' ) && 
@@ -520,7 +536,8 @@ const Crowdfunding = ( () => {
 			CrowdfundingHome.getInstance().init( { jQuery : $ } );
 		}
 
-		GWUtilities.loadStylesheet( 'https://growlfrequency.com/work/luminate/css/gwu_wrpr/crowdfunding.css' );
+		//GWUtilities.loadStylesheet( 'https://growlfrequency.com/work/luminate/css/gwu_wrpr/crowdfunding.css' );
+		GWUtilities.loadStylesheet( '/gwu_wrpr/crowdfunding.css' );
 	
 		$( '.progress-meter-stub' ).each( _makeProgressMeterStub );
 			
