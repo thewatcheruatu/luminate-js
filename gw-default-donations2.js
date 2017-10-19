@@ -20,6 +20,23 @@ const GWDonations = ( function() {
 	};
 	
 	function attachHandlers() {
+		$( document )
+			.on( 'click', '.mock-selection-list', ( e ) => {
+				const $target = $( e.target );
+				const $msl = $target.closest( '.mock-selection-list' );
+				if ( $msl.hasClass( 'disabled' ) &&
+					$msl.data( 'references' ) === 'single_designee' ) {
+					$( '#single_designee_designated' )
+						.focus()
+						.prop( 'checked', true )
+						.click();
+					setTimeout( () => {
+						$msl.focus();
+						$target.click();
+					}, 300 );
+				}
+			} );
+
 		const $donationLevels = $( '.donation-levels' );
 
 		$donationLevels
@@ -826,10 +843,19 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 			} );
 		stepNavigatorAssignDesignee();
 		
-		$( 'input[name=single_designee_radio], #single_designee' ).on( 'change', stepNavigatorAssignDesignee );
-		$( 'input[name=level_flexiblegift_type], #level_flexibleduration, input[name=level_flexibleexpanded]' )
+		$( 'input[name=single_designee_radio], #single_designee' )
+			.on( 'change', stepNavigatorAssignDesignee );
+
+		$( 
+			'input[name=level_flexiblegift_type], #level_flexibleduration, ' +
+			'input[name=level_flexibleexpanded]' 
+		)
 			.on( 'change', stepNavigatorAssignGiftDetails );
-		$( '#level_flexible_row' ).find( 'input[type=text]' ).on( 'keyup', stepNavigatorAssignGiftDetails );
+
+		$( '#level_flexible_row' )
+			.find( 'input[type=text]' )
+			.on( 'keyup', stepNavigatorAssignGiftDetails );
+
 		stepNavigatorAssignGiftDetails();
 	}
 	
