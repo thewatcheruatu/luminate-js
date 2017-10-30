@@ -18,6 +18,9 @@ const GWDonations = ( function() {
 		},
 		oneTime : [],
 	};
+	const options = {
+		unrestrictedDesigneeId : null,
+	};
 	
 	function attachHandlers() {
 		$( document )
@@ -350,6 +353,65 @@ const GWDonations = ( function() {
 			donationLevels.recurring[frequency] = amounts;
 		}
 	}
+
+	function setUnrestrictedDesignee( designeeId ) {
+		$( () => {
+			const designeeOption = $( '#single_designee' )
+				.find( 'option[value=' + designeeId + ']' );
+			if ( ! designeeOption.length ) {
+				return;
+			}
+			options.unrestrictedDesigneeId = String( designeeId );
+			_makeMockOption();
+		} );
+
+		function _makeMockOption() {
+			if ( $( '#mock_single_designee_unrestricted' ).length ) {
+				return;
+			}
+			const $unrestrictedRadio = $( '#single_designee_unrestricted' );
+			const $designatedRadio = $( '#single_designee_designated' );
+			const $unrestrictedReplacement = $( '<input>' )
+				.attr( 'id', 'mock_single_designee_unrestricted' )
+				.attr( 'type', 'radio' )
+				.attr( 'name', 'mock_single_designee_radio' );
+			const $designatedReplacement = $( '<input>' )
+				.attr( 'id', 'mock_single_designee_designated' )
+				.attr( 'type', 'radio' )
+				.attr( 'name', 'mock_single_designee_radio' );
+			const $singleDesigneeSelect = $( '#single_designee' );
+
+			$unrestrictedRadio
+				.addClass( 'hidden' )
+				.before( $unrestrictedReplacement );
+			$designatedRadio
+				.addClass( 'hidden' )
+				.before( $designatedReplacement );
+			$unrestrictedReplacement.on( 'change', ( e ) => {
+				if ( $unrestrictedReplacement.prop( 'checked' ) === true ) {
+					$singleDesigneeSelect
+						.val( options.unrestrictedDesigneeId )
+						.trigger( 'change' );
+				}
+			} );
+			$singleDesigneeSelect
+				.on( 'change', ( e ) => {
+					const thisVal = $singleDesigneeSelect.val();
+					if ( thisVal !== options.unrestrictedDesigneeId ) {
+						$designatedReplacement.prop( 'checked', true );
+					}
+				} );
+			if ( $unrestrictedRadio.prop( 'checked' ) ) {
+				$unrestrictedReplacement
+					.prop( 'checked', true )
+					.trigger( 'change' );
+				$unrestrictedRadio.prop( 'checked', false );
+			} else {
+				$designatedReplacement.prop( 'checked', true );
+			}
+
+		}
+	}
 	
 	function donationLevelsInit() {
 		const $levelContainers = $( '.donation-level-container' );
@@ -380,6 +442,7 @@ const GWDonations = ( function() {
 		init : init,
 		setDefault : setDefault,
 		setDonationLevels : setDonationLevels,
+		setUnrestrictedDesignee : setUnrestrictedDesignee,
 	};
 
 } )();
