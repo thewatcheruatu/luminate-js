@@ -158,7 +158,7 @@ const CrowdfundingLanding = ( () => {
 		function _calculateTimeRemaining() {
 			const now = new Date();
 			const utcNow = now.getTime();
-			const utcEnd = Date.UTC( 2019,3,24,4,59,59,0 );
+			const utcEnd = Date.UTC( 2017,11,5,4,59,59,0 );
 			let diff = utcEnd - utcNow;
 
 			// 15 days
