@@ -139,6 +139,70 @@ const GWDonations = ( function() {
 			}
 		} );
 	}
+
+	function designeeCalloutInit() {
+		const $designeeCallout = $( 
+			'<div id="designee-callout"><strong>Your gift will support:</strong>' +
+			'<div id="called-out-designee"></div><button id="change-designee" class="subordinate gw-gold">' +
+			'View All Gift Options</button></div>'
+		);
+
+		$designeeCallout.prependTo( $( '#single_designee_row' ) );
+		
+		const $calledOutDesignee = $( '#called-out-designee' );
+		const $changeDesigneeButton = $( '#change-designee' );
+
+		const $singleDesigneeRow = $( '#single_designee_row' );
+		const $singleDesigneeRadios = $( 'input[name=single_designee_radio]' );
+		const $singleDesigneeSelect = $( '#single_designee' );
+
+		$singleDesigneeRadios.on( 'change', onSingleDesigneeRadioChange );
+
+		$singleDesigneeSelect.on( 'change', ( e ) => {
+			if ( $singleDesigneeSelect.prop( 'disabled' ) ) {
+				return;
+			}
+
+			const selectedDesignee = $singleDesigneeSelect
+				.find( 'option:selected' )
+				.text();
+
+			if ( selectedDesignee !== $calledOutDesignee.text() ) {
+				$calledOutDesignee.text( selectedDesignee );
+			}
+		} );
+
+		$changeDesigneeButton.on( 'click', ( e ) => {
+			e.preventDefault();
+			$changeDesigneeButton.addClass( 'hidden' );
+			$singleDesigneeRow.children( '.form-content' ).removeClass( 'hidden' );
+		} );
+
+		onSingleDesigneeRadioChange();
+		if ( $singleDesigneeSelect.val() !== '0' ) {
+			$singleDesigneeRow.children( '.form-content' ).addClass( 'hidden' );
+		} else {
+			$changeDesigneeButton.click();
+		}
+
+		function onSingleDesigneeRadioChange( e ) {
+			const $target = $singleDesigneeRadios.filter( ':checked' );
+			const $targetValue = $target.val();
+			let calledOutDesigneeText = '';
+			
+			if ( $targetValue === 'unrestricted' ) {
+				calledOutDesigneeText = $( '#single_designee_unrestricted' )
+					.siblings( 'label' )
+					.text();
+			} else {
+				calledOutDesigneeText = $singleDesigneeSelect
+					.find( 'option:selected' )
+					.text();
+			}
+			
+			$calledOutDesignee.text( calledOutDesigneeText );
+		}
+	}
 	
 	function donationTotalInit() {
 		const $donationLevelTotalDefault = $( '.donation-level-total-amount' )
@@ -215,6 +279,7 @@ const GWDonations = ( function() {
 		}
 	}
 	
+	/* GWDonations init */
 	function init( dependencies ) {
 		if ( initialized ) {
 			return false;
@@ -240,6 +305,7 @@ const GWDonations = ( function() {
 			// Total Price seems to be kind of laggy, so I'm just going to replace it
 			attachHandlers();
 			miscellaneousSetup();
+			designeeCalloutInit();
 			donationLevelsInit();
 			donationTotalInit();
 			handleQueryString();
@@ -582,11 +648,19 @@ const GWDonationsUtilities = ( () => {
 		
 		donationLevelRadioFound = false;
 		$donationLevelAmountContainers.each( function() {
+			if ( donationLevelRadioFound ) {
+				return;
+			}
 			const thisAmount = parseFloat( 
 				$( this ).text().trim().replace( /[$,]/g, '' ) 
 			);
 			if ( donation.amount === thisAmount ) {
 				donationLevelRadioFound = true;
+				$( this )
+					.closest( '.donation-level-input-container' )
+					.find( 'input' )
+					.prop( 'checked', true )
+					.trigger( 'change' );
 			}
 		} );
 
@@ -1148,6 +1222,134 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 	};
 } )();
 
+const DonationsRecurringUpsell = ( function() {
+	let initialized = false;
+	let $;
+
+	function init( dependencies ) {
+		if ( initialized ) {
+			return false;
+		}
+		dependencies = dependencies || {};
+		$ = dependencies.jQuery || jQuery;
+
+		if ( $ === undefined ) {
+			console.log( 
+				'DonationsRecurringUpsell failed to find an instance ' +
+				' of jQuery' 
+			);
+			return false;
+		} else if ( !$.fn.on ) {
+			console.log( 
+				'DonationsRecurringUpsell requires jQuery v1.7 or greater. Found v' + 
+				$.fn.jquery 
+			);
+			return false;
+		}
+
+		$( onReady() );
+
+		function onReady() {
+			GWUtilities.loadClass( 'GWModals' )
+				.then( () => {
+					return loadModalHtml();
+				} )
+				.then( () => {
+					if ( ! $( '#make-it-recurring' ).length ) {
+						console.log( 'make-it-recurring not appended' );
+						return;
+					}
+					$( makeItRecurring.init() );
+				} )
+				.catch( function( error ) {
+					console.log( 'Error loading recurring upsell', error.message );
+				} );
+		}
+
+		function loadModalHtml() {
+			return new Promise( ( resolve, reject ) => {
+				const $temp = $( '<div>' );
+				$temp.load( 
+					'../js/gwu_wrpr/make-it-recurring.html', 
+					( response, status, xhr ) => {
+						if ( status === 'error' ) {
+							return reject( new Error( xhr.statusText ) );
+						}
+						$temp.children( '#make-it-recurring' ).appendTo( 'body' );
+						resolve();
+				} );
+			} );
+		}
+
+		var makeItRecurring = {
+			recurringOffered : false,
+			suggestedDonation : {},
+			userEnteredDonation : {},
+
+			init : function() {
+				var self;
+				
+				self = this;
+				GWDonationsUtilities.init( { jQuery: $ } );
+				GWModals.init( { jQuery: $ } );
+				GWModals.createFromDiv( 'make-it-recurring' );
+				$( 'form' )
+					.on( 'submit', function( e ) {
+						var donation;
+
+						if ( self.recurringOffered ) {
+							return true;
+						}
+						donation = self.userEnteredDonation = GWDonationsUtilities.calculateDonationTotal();
+						if ( donation.amount <= 50 || donation.frequency !== '' ) {
+							return true;
+						}
+
+						/*
+						 * Confirmed at this point that we want to offer user the option to
+						 * make it recurring, so we can prevent the default submit behavior.
+						**/
+						e.preventDefault();
+						self.suggestedDonation = self.makeSuggestedDonation( donation );
+						$( '#make-it-recurring-monthly-suggest-amount' ).html( GWUtilities.formatMoney( self.suggestedDonation.amount ) );
+						$( '#make-it-recurring-user-entered-amount' ).html( GWUtilities.formatMoney( donation.amount ) );
+						GWModals.show( 'make-it-recurring' );
+						self.recurringOffered = true;
+					} );
+					
+				$( '#make-it-recurring-accept-button' )
+					.on( 'click', function( e ) {
+						e.preventDefault();
+						GWDonationsUtilities.setDonation( self.suggestedDonation );
+						GWModals.hide( 'make-it-recurring' );
+					} );
+
+				$( '#make-it-recurring-reject-button' )
+					.on( 'click', function( e ) {
+						e.preventDefault();
+						$( '#pstep_next' ).click();
+						//$( 'form' ).submit();
+					} );
+			},
+
+			makeSuggestedDonation : function( donation ) {
+				var suggestedDonation;
+				if ( donation.frequency !== '' ) {
+					return donation;
+				}
+				suggestedDonation = {};
+				suggestedDonation.frequency = 'monthly';
+				suggestedDonation.amount = Math.ceil( donation.amount * 1.2 / 12 );
+				suggestedDonation.amount = suggestedDonation.amount < 5 ? 5 : suggestedDonation.amount;
+				return suggestedDonation;
+			}
+		}; // End makeItRecurring
+	}
+
+	return {
+		init : init,
+	};
+} )();
 
 ( function( $ ) {
 	try {
