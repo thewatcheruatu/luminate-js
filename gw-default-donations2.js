@@ -364,7 +364,9 @@ const GWDonations = ( function() {
 		let $commentsField;
 		let comments;
 		
-		comments = GWUtilities.queryString.get( 'set.Comments' );
+		// The setComment form is for legacy compatibility
+		comments = GWUtilities.queryString.get( 'set.Comments' ) ||
+			GWUtilities.queryString.get( 'setComment' );
 		if ( ! comments ) {
 			return;
 		}
