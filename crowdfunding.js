@@ -65,7 +65,7 @@ const CrowdfundingHome = ( () => {
 				$homepage.prepend( 
 					'<h2 style="text-align: center;">Colonial Crowdfunding harnesses ' +
 					'the power of the GW network to support student-led projects and ' +
-					'ventures.</h2>'
+					'ventures. Fall 2017 projects closed December 4.</h2>'
 				);
 			}
 		}
@@ -318,10 +318,10 @@ const CrowdfundingLanding = ( () => {
 				$splashPage.hasClass( 'completed' ) && 
 				$( 'title' ).text().indexOf( 'Hillel' ) === -1 
 			) {
-				$( '.crowdfunding-splash-page' )
+				$splashPage
 					.prepend( 
-						'<h2 style="text-align: center;">Projects closed April 23. ' +
-						'Future donations might not support this project.</h2>'
+						'<p class="crowdfunding-notice">Projects closed December 4. ' +
+						'Future donations might not support this project.</p>'
 					);	
 			}
 		}
