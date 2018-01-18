@@ -276,6 +276,7 @@
 				$( 'footer' ).css( 'background-color', '#ffffff' );
 				break;
 			case 'vascular institute':
+				$.getScript( '../js/gwu_wrpr/unrestricted-replacement.js' );
 				$( 'header' ).css( 'background-color', 'transparent' );
 				$( '#logo-making-history-link' ).attr( 'href', 'http://www.gwheartandvascular.org/' );
 				$( '#logo-making-history' )

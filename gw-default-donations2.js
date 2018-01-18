@@ -583,7 +583,7 @@ const GWDonationsUtilities = ( () => {
 						.parent()
 						.find( 'input[type=text]' )
 						.val()
-						.replace( /[$]/gi, '' ) 
+						.replace( /[$,]/gi, '' ) 
 				) || 0;
 			} else {
 				giftAmount = parseFloat( 
@@ -1303,7 +1303,7 @@ const DonationsRecurringUpsell = ( function() {
 							return true;
 						}
 						donation = self.userEnteredDonation = GWDonationsUtilities.calculateDonationTotal();
-						if ( donation.amount <= 50 || donation.frequency !== '' ) {
+						if ( donation.amount < 50 || donation.frequency !== '' ) {
 							return true;
 						}
 
