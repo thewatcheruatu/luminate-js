@@ -1060,6 +1060,23 @@ const GWDefaultSteppedSingleDesignee = ( function() {
 		$( () => {
 			boxUpSteps( stepOrder );
 			attachHandlers();
+			const $submitErrors = $( '.form-error' );
+			const stepsWithErrors = [];
+			$submitErrors.each( ( i, el ) => {
+				const $parentStep = $( el ).closest( '.donation-form-step' );
+				const stepNum = $parentStep.attr( 'id' ).replace( 'step-', '' );
+				if ( ! stepsWithErrors.length ) {
+					goToStep( stepNum );
+				}
+				if ( stepsWithErrors.indexOf( stepNum ) === -1 ) {
+					stepsWithErrors.push( stepNum );
+				}
+			} );
+
+			for ( let i = 0; i < stepsWithErrors.length; i++ ) {
+				$( '#step-navigator-step-' + stepsWithErrors[i] )
+					.addClass( 'contains-errors' );
+			}
 		} );
 
 		return true;
