@@ -75,7 +75,7 @@ const GeneralWrapper = ( function() {
 	}
 	
 	function moveBodyStylesToHead() {
-		$( '.custom-styles' ).detach().appendTo( 'head' );
+		$( '.custom-styles, .custom-css, .custom-style' ).detach().appendTo( 'head' );
 	}
 
 
