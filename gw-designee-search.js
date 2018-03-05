@@ -154,6 +154,11 @@ const GWDesigneeSearch = ( function() {
 				matchingDesigneesFromTypes.join( '\n' )
 			);
 
+			if ( ! $( '.designee-search-results' ).children().length ) {
+				$searchResults.html( 
+					'<p id="no-designee-search-results">No results.</p>' );
+			}
+
 			function makeDesigneeListItem( designee ) {
 				const designeeUrl = 'Donation2?df_id=' + dfId + '&' + dfId + 
 					'.donation=form1' + '&set.SingleDesignee=' + designee.id;
@@ -170,8 +175,13 @@ const GWDesigneeSearch = ( function() {
 		const matchingIndexes = [];
 		for ( let i = 0; i < designees.length; i++ ) {
 			const lcDesigneeName = designees[i].name.toLowerCase();
+			const lcDesigneeText = typeof designees[i].description.text === 'string' ? 
+				designees[i].description.text.toLowerCase() :
+				'';
 
 			if ( lcDesigneeName.indexOf( designeeName ) >= 0 ) {
+				matchingIndexes.push( i );
+			} else if ( lcDesigneeText.indexOf( designeeName ) >= 0 ) {
 				matchingIndexes.push( i );
 			}
 		}
