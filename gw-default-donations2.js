@@ -331,6 +331,19 @@ const GWDonations = ( function() {
 				.find( 'legend' )
 				.prepend( '<span class="field-required"></span>' );
 		}
+
+		/*
+		 * Low priority. Check for required rows and append some additional
+		 * classes to inputs and the rows, themselves.
+		 */
+
+		$( '.field-required' ).each( ( i, el ) => {
+			$( el )
+				.closest( '.form-row' )
+				.addClass( 'required' )
+				.find( 'input' )
+				.addClass( 'required' );
+		} );
 		
 	}
 	
