@@ -267,14 +267,16 @@ const GWDonations = ( function() {
 			.get( 'set.FlexibleDuration' );
 
 		if ( optionalRepeat ) {
-			setDefault( 'recurring', true );
 			if ( flexibleDuration ) {
 				if ( flexibleDuration === 'M:0' ) {
 					setDefault( 'gift duration', 'monthly ongoing' );
-				}
-				if ( flexibleDuration === 'Y:0' ) {
+				} else if ( flexibleDuration === 'Y:0' ) {
 					setDefault( 'gift duration', 'yearly ongoing' );
+				} else {
+					setDefault( 'gift duration', flexibleDuration );
 				}
+			} else {
+				setDefault( 'recurring', true );
 			}
 		}
 	}
@@ -390,7 +392,15 @@ const GWDonations = ( function() {
 		$commentsField.val( comments );
 	}
 
+	/*
+	 * I wrote this to be more human readable so that people could do this
+	 * without me if necessary, but I think I probably just overcomplicated it.
+	 * The defaultState object is eventually checked within setFlexibleDuration.
+	 */
 	function setDefault( property, value ) {
+		if ( property === 'recurring' ) {
+			defaultState.recurring = value;
+		}
 		if ( property === 'gift duration' ) {
 			defaultState.recurring = true;
 			if ( value === 'monthly ongoing' ) {
@@ -399,6 +409,16 @@ const GWDonations = ( function() {
 			} else if ( value === 'yearly ongoing' ) {
 				defaultState.frequency = 'yearly';
 				defaultState.duration = '0';
+			} else {
+				if ( value.charAt( 0 ) === 'M' ) {
+					defaultState.frequency = 'monthly';
+				} else if ( value.charAt( 0 ) === 'Y' ) {
+					defaultState.frequency = 'yearly';
+				}
+
+				if ( value.indexOf( ':' ) === 1 ) {
+					defaultState.duration = value.substring( 2 );
+				}
 			}
 		}
 	}
