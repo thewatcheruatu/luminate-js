@@ -44,6 +44,8 @@ var GWModals = ( function() {
 	
 	function closeModalMasterContainer() {
 		$( 'body' ).removeClass( 'modal-open' );
+
+		return this;
 	}
 	
 	/*
@@ -64,7 +66,9 @@ var GWModals = ( function() {
 		htmlString = '<div id="' + id + '" class="modal-window hidden"><span class="close-modal"></span><div class="modal-content">' + params.htmlString + '</div></div>';
 		$( '#modal-master-container' ).append( htmlString );
 		numModalsCreated++;
-		return true;
+		//return true;
+
+		return this;
 	}
 	
 	function createModalFromDivWithId( id ) {
@@ -87,7 +91,9 @@ var GWModals = ( function() {
 			.detach()
 			.appendTo( '#modal-master-container' );
 		numModalsCreated++;
-		return true;
+		
+		//return true;
+		return this;
 	}
 	
 	function ensureModalContainerExists() {
@@ -102,7 +108,8 @@ var GWModals = ( function() {
 	}
 	
 	function updateModalHtml( id, htmlString ) {
-		return $( '#' + id ).find( '.modal-content' ).html( html );
+		$( '#' + id ).find( '.modal-content' ).html( htmlString );
+		return this;
 	}
 	
 	/* Going to make this lazy--will get called when first attempting to create a modal window */
@@ -125,6 +132,8 @@ var GWModals = ( function() {
 		$( '.modal-window' ).addClass( 'hidden' );
 		$( 'body' ).addClass( 'modal-open' );
 		modalWindow.removeClass( 'hidden' );
+
+		return this;
 	};	
 	
 	return {
