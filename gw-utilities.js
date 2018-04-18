@@ -193,6 +193,20 @@ const GWUtilities = ( function( $ ) {
 		return this.queryStringLookup[parameter];
 	};
 
+	self.scrollTo = function( $anchor, cb ) {
+		const $anchor = typeof anchor === 'string' ? $( anchor ) : anchor;
+		if ( ! $anchor.length ) {
+			console.log( 'Anchor does not exist: GWUtilities.scrollTo()' );
+			return;
+		}
+		cb = typeof cb === 'function' ? cb : function() {};
+		
+		const offsetTop = $anchor.offset().top;
+		$( 'html, body' ).animate( {
+			scrollTop : offsetTop + 'px'
+		}, 'fast', cb );
+	};
+
 	self.shuffle = function( array ) {
 		for ( let i = array.length - 1; i >= 0; i-- ) {
 			const randomIndex = Math.floor( Math.random() * ( i + 1 ) );
