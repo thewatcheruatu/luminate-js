@@ -193,7 +193,7 @@ const GWUtilities = ( function( $ ) {
 		return this.queryStringLookup[parameter];
 	};
 
-	self.scrollTo = function( $anchor, cb ) {
+	self.scrollTo = function( anchor, cb ) {
 		const $anchor = typeof anchor === 'string' ? $( anchor ) : anchor;
 		if ( ! $anchor.length ) {
 			console.log( 'Anchor does not exist: GWUtilities.scrollTo()' );
