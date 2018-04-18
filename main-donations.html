@@ -1,0 +1,234 @@
+<section id='main-donations-steps'>
+
+	<section id='main-donations-step-1' class='main-donations-step active-step'>
+		<h2>How Often</h2>
+		<ul class='rocker'>
+			<li><button id='main-donations-give-monthly' data-references='level_flexiblegift_type2'>Give Monthly</button></li>
+			<li><button id='main-donations-give-once' data-references='level_flexiblegift_type1'>Give Once</button></li>
+		</ul>
+
+		<h2>How Much</h2>
+		<p><span class='monetary-text-input'><input type='text' id='main-donations-amount' class='main-donations-text-input'></span></p>
+
+		<button id='main-donations-step-one-confirm' class='main-donations-next-button'><strong>Next:</strong> <span id='main-donations-step-one-confirm-text'><span></button>
+	</section><!-- End : #main-donations-step-1 -->
+
+	<section id='main-donations-step-2' class='main-donations-step hidden'>
+		<h2>Where It Goes</h2>
+		<ul class='rocker'>
+			<li><button id='main-donations-greatest-need'>Greatest Need</button></li>
+			<li><button id='main-donations-specific-designee'>Specific Designee</button></li>
+		</ul>
+
+		<section id='main-donations-designee-search-section' class='hidden'>
+			<h3>Search</h3>
+			<div>
+				<input type='text' id='main-donations-designee-search'>
+				<button type='submit' id='main-donations-designee-search-submit' class='hidden'>Search</button>
+			</div>
+			<div id='main-donations-designee-search-results'>
+			</div>
+
+			<p id='browse-option'><a href='#' id='browse-option-link'>Or Browse</a></p>
+			<div id='browse-container' class='hidden'>
+				<h3>Browse</h3>
+				<ul id='main-donations-designee-browse-list'>
+				</ul>
+			</div>
+		</section>
+
+		<button id='main-donations-step-two-back' class='main-donations-back-button'><strong>Back</strong></button>
+		<button id='main-donations-step-two-confirm' class='main-donations-next-button'><strong>Next:</strong> <span id='main-donations-step-two-confirm-text'><span></button>
+
+	</section><!-- End: #main-donations-step-2 -->
+
+	<section id='main-donations-step-3' class='main-donations-step hidden'>
+		<h2>Billing Info</h2>
+		<div id='main-donations-step-3-fields'></div>
+		<button id='main-donations-step-3-confirm' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-3-confirm-text'><span></button>
+	</section>
+
+	<section id='main-donations-step-4' class='main-donations-step hidden'>
+		<h2>Payment Info</h2>
+		<div id='main-donations-step-4-fields'></div>
+		<button id='main-donations-step-4-confirm' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-4-confirm-text'><span></button>
+	</section>
+
+</section><!-- End: #main-donations-steps -->
+
+<aside id='main-donations-decisions-container'>
+	<h4>Your Gift Details</h4>
+	<ul id='main-donations-decisions'>
+		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>Frequency: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
+		<li id='amount-decision-item' class='undecided'><span class='decision-label'>Amount: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
+		<li id='supporting-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='supporting-decision'></span> <a href='#' id='change-supporting-decision' class='change-decision'>(Change)</a></li>
+	</ul>
+</aside>
+
+<style class='custom-style'>
+	/* Start: Major Form Layout */
+	#main-donations-form {
+		align-items : flex-start;
+		display : flex;
+		flex-wrap : wrap;
+		justify-content : space-between;
+	}
+
+	#main-donations-steps {
+		flex-basis : 66%;
+	}
+
+	#main-donations-decisions-container {
+		border : .2em solid #0096D6;
+		flex-basis : 30%;
+		padding : .5em 1em;
+	}
+
+	/* End : Major Form Layout */
+	.main-donations-step {
+		padding-bottom : 2em;
+	}
+
+	/* Start: General UI */
+	.main-donations-next-button {
+		opacity : 0;
+		transition : background-color .3s ease-in-out, border-color .3s ease-in-out,  opacity .3s ease-in-out;
+	}
+
+	.main-donations-next-button.active {
+		opacity : 1;
+	}
+
+	.main-donations-next-button.callout {
+		background-color : #e47838;
+		border-color : #a24a0b;
+	}
+
+	/* End: General UI */
+
+	/* Start: Decisions Aside */
+	.decision-label {
+		color : #004065;
+		font-weight : bold;
+	}
+
+	#main-donations-decisions {
+		list-style-type : none;
+		padding-left : 0;
+	}
+
+	#main-donations-decisions-container h4 {
+		border-top : 0;
+		padding-top : 0;
+	}
+
+	.undecided .change-decision {
+		display : none;
+	}
+	/* End: Decisions Aside */
+
+	.monetary-text-input {
+		display : inline-block;
+		font-family: Montserrat, 'Open Sans', sans-serif;
+		position : relative;
+	}
+
+	.monetary-text-input:before {
+		content : '$';
+		color : #999;
+		left : .75em;
+		position : absolute;
+		top : 50%;
+		transform : translateY( -45% );
+	}
+
+	.monetary-text-input input {
+		padding-left : 1.75em;
+	}
+
+	/* Start: Designee Browse List */
+	#browse-container {
+		margin-top : 1.5em;
+	}
+
+	.designee-browse-list-header {
+		/* A span */
+		background-color : #0096d6;
+		border : .1em solid #1c7094;
+		color : #fff;
+		cursor : pointer;
+		display : block;
+		font-weight : bold;
+		padding : .3em .5em;
+	}
+
+	.designee-browse-list-type > ul {
+		margin-top : .5em;
+	}
+
+	.designee-browse-list-type.closed > ul {
+		display : none;
+	}
+
+	#main-donations-designee-browse-list {
+		list-style-type : none;
+		padding-left : 0;
+	}
+	
+	#main-donations-designee-browse-list > li {
+		border : .1em solid #efefef;
+		border-top : 0;
+		margin-bottom : .5em;
+	}
+	/* End: Designee Browse List */
+
+	.rocker {
+		display : flex;
+		list-style-type : none;
+		padding-left : 0;
+		max-width : 30em;
+	}
+
+	.rocker li {
+		display : inline-block;
+		flex : 50%;
+	}
+
+	.rocker button {
+		/*
+		background: repeating-linear-gradient(
+			-45deg,
+			rgba( 0, 150, 212, .6 ),
+			rgba( 0, 150, 212, .6 ) .5em,
+			rgba( 0, 150, 212, .8 ) .2em,
+			rgba( 0, 150, 212, .8 ) .7em
+		);
+		*/
+		background: repeating-linear-gradient(
+			-45deg,
+			rgba( 114, 182, 212, .6 ),
+			rgba( 114, 182, 212, .6 ) .5em,
+			rgba( 114, 182, 212, .8 ) .2em,
+			rgba( 114, 182, 212, .8 ) .7em
+		);
+		border : .2em solid #888;
+		color : #777;
+		font-weight : bold;
+		outline : none;
+		padding : .5em 1em;
+		width : 100%;
+	}
+
+	.rocker li:first-child button {
+		border-right : 0;
+	}
+
+	.rocker li.selected button {
+		background : rgb( 0, 150, 212 );
+		color : #fff;
+	}
+
+	.rocker input {
+		/*display : none;*/
+	}
+</style>
