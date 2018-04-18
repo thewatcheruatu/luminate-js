@@ -5,20 +5,19 @@
 
 const GWDesigneeSearch = ( function() {
 	let $;
+	let apiConfig;
+	let designationTypes = []; // From API
+	let designees = []; // From API
+	let donationFormId;
 	let initialized = false;
+	let luminateExtend;
 
 	function init( dependencies, config, selectors ) {
 		dependencies = dependencies || {};
 		config = config || {};
-		selectors = selectors || {
-			searchBox : '#designee-search-box',
-			searchSubmit : '#designee-search-submit',
-			searchResults : '#designee-search-results',
-		};
-
-		const luminateExtend = dependencies.luminateExtend;
-		const apiConfig = config.apiConfig;
-		const donationFormId = config.donationFormId;
+		luminateExtend = dependencies.luminateExtend;
+		apiConfig = config.apiConfig;
+		donationFormId = config.donationFormId;
 		$ = dependencies.jQuery || jQuery;
 		
 		if ( ! luminateExtend ) {
@@ -50,53 +49,41 @@ const GWDesigneeSearch = ( function() {
 			console.log( 'donationFormId is a required parameter.' );
 		}
 
-		searchThingy( apiConfig, donationFormId );
+		luminateExtend( apiConfig );
+		searchThingy( donationFormId );
 
-		function searchThingy( apiConfig, donationFormId ) {
-			luminateExtend( apiConfig );
-			
-			luminateExtend.api( {
-				api: 'donation', 
-				data: 'method=getDesignees&form_id='+ donationFormId, 
-				callback: {
-					error: function(data) {
-						console.log( data.errorResponse );
-					},
-					success: function( data ) {
-						const designees = luminateExtend.utils.ensureArray( data.getDesigneesResponse.designee );
-						designees.sort( function( a, b ){
-							var aName = a.name.toLowerCase();
-							var bName = b.name.toLowerCase();
-							// Don't think these particularly need to be sorted within types
-							//if (a.typeId != b.typeId) return parseInt(a.typeId) - parseInt(b.typeId);
-							if ( aName < bName ) return -1;
-							if ( aName > bName ) return 1;
-							return 0;
-						} );
-
-						luminateExtend.api( {
-							api : 'donation',
-							data : 'method=getDesignationTypes&form_id=' + donationFormId,
-							callback : {
-								error : ( data ) => {
-									console.log( data.errorResponse );
-								},
-								success : ( data ) => {
-									const designationTypes = luminateExtend.utils.ensureArray( data.getDesignationTypesResponse.type );
-
-									attachSearchHandler( designees, designationTypes, selectors, { autoSearch : true } );
-								}
-							},
-						} );
-
+		function searchThingy( donationFormId ) {
+			// luminateExtend must have already been configured
+			getDesignees()
+				.then( () => {
+					return getDesignationTypes();
+				} )
+				.then( () => {
+					if ( ! designees.length ) {
+						return;
 					}
-				}
-			} );
+					if ( selectors ) {
+						attach( selectors );
+					}
+				} )
+				.catch( ( _error ) => {
+					console.log( _error );
+				} );
 		}
 	}
 
+	function attach( selectors ) {
+		selectors = selectors || {
+			searchBox : '#designee-search-box',
+			searchSubmit : '#designee-search-submit',
+			searchResults : '#designee-search-results',
+		};
+
+		attachSearchHandler( selectors, { autoSearch : true } );
+	}
+
 /* Begin: attachSearchHandler() */
-	function attachSearchHandler( designees, designationTypes, selectors, options ) {
+	function attachSearchHandler( selectors, options ) {
 		options = options || {};
 
 		const $searchBox = $( selectors.searchBox );
@@ -118,7 +105,6 @@ const GWDesigneeSearch = ( function() {
 		}
 
 		function designeeSearchSubmit( e ) {
-
 			e.preventDefault();
 			const designeeName = $searchBox.val().trim();
 			const matchingIndexes = findMatchingDesigneeIndexes( designeeName, designees );
@@ -164,7 +150,8 @@ const GWDesigneeSearch = ( function() {
 					'.donation=form1' + '&set.SingleDesignee=' + designee.id;
 
 				return '<li class="designee-search-result"><a href="' +
-					designeeUrl + '">' + designee.name + '</a></li>';
+					designeeUrl + '" data-designee-id="' + designee.id + '">' + 
+					designee.name + '</a></li>';
 			}
 		}
 	}
@@ -202,8 +189,71 @@ const GWDesigneeSearch = ( function() {
 		return matchingTypes;
 	}
 
+	function getDesignees() {
+		return new Promise( ( resolve, reject ) => {
+			if ( designees.length ) {
+				return resolve( designees );
+			}
+
+			luminateExtend.api( {
+				api: 'donation', 
+				data: 'method=getDesignees&form_id='+ donationFormId, 
+				callback: {
+					error: function(data) {
+						reject( data.errorResponse );
+					},
+					success: function( data ) {
+						// designees is global to GWDesigneeSearch closure
+						designees = luminateExtend.utils.ensureArray( data.getDesigneesResponse.designee );
+						designees.sort( function( a, b ){
+							var aName = a.name.toLowerCase();
+							var bName = b.name.toLowerCase();
+							// Don't think these particularly need to be sorted within types
+							//if (a.typeId != b.typeId) return parseInt(a.typeId) - parseInt(b.typeId);
+							if ( aName < bName ) return -1;
+							if ( aName > bName ) return 1;
+							return 0;
+						} );
+
+						resolve( designees );
+					}
+				}
+			} );
+		} );
+	}
+
+	function getDesignationTypes() {
+		return new Promise( ( resolve, reject ) => {
+			if ( designationTypes.length ) {
+				return resolve( designationTypes );
+			}
+
+			luminateExtend.api( {
+				api : 'donation',
+				data : 'method=getDesignationTypes&form_id=' + donationFormId,
+				callback : {
+					error : ( data ) => {
+						reject( data.errorResponse );
+					},
+					success : ( data ) => {
+						// designationTypes is global to GWDesigneeSearch closure
+						designationTypes = luminateExtend.utils.ensureArray( data.getDesignationTypesResponse.type );
+						if ( designationTypes.length ) {
+							return resolve( designationTypes );
+						} else {
+							reject( new Error( 'No designation types retrieved' ) );
+						}
+					}
+				},
+			} );
+		} );
+	}
+
 
 	return {
+		attach : attach,
+		getDesignees : getDesignees,
+		getDesignationTypes : getDesignationTypes,
 		init : init,
 	}
 } )();
