@@ -130,13 +130,68 @@ const GWMainDonations = ( () => {
 		} );
 	}
 
-	function attachHandlers() {
-		const $stepOneConfirmButton = $( '#main-donations-step-one-confirm' );
-		const $stepTwoConfirmButton = $( '#main-donations-step-two-confirm' );
-		const $stepThreeConfirmButton = $( '#main-donations-step-3-confirm' );
-		const $stepFourConfirmButton = $( '#main-donations-step-4-confirm' );
+	const browseList = {
+		hide : function() {
+			$( '#browse-option' ).removeClass( 'hidden' );
+			$( '#browse-container' ).addClass( 'hidden' );
+		},
 
-		$( 'body' )
+		show : function() {
+			$( '#browse-option' ).addClass( 'hidden' );
+			$( '#browse-container' ).removeClass( 'hidden' );
+		},
+
+		toggleGroup : function( $group ) {
+			$group
+				.closest( '.designee-browse-list-type' )
+				.toggleClass( 'closed' )
+				.siblings()
+				.addClass( 'closed' );
+		},
+
+	};
+
+	const giftDetailsList = {
+		dynamicShow : function() {
+			console.log( 'dynamic' );
+			if ( $( '#frequency-decision-made' ).prop( 'checked' ) ||
+				$( '#amount-decision-made' ).prop( 'checked' ) ||
+				$( '#designee-decision-made' ).prop( 'checked' ) ) {
+				this.show();
+			} else {
+				this.hide();
+			}
+		},
+
+		hide : function() {
+			$( '#main-donations-decisions-container' ).addClass( 'hidden' );
+		},
+
+		show : function() {
+			$( '#main-donations-decisions-container' ).removeClass( 'hidden' );
+		},
+	};
+
+	const searchResultsList = {
+		hide : function() {
+			$( '#main-donations-designee-search-results' )
+				.addClass( 'hidden' );
+		},
+
+		show : function() {
+			$( '#main-donations-designee-search-results' )
+				.removeClass( 'hidden' );
+		},
+	};
+
+	function attachHandlers() {
+		const $body = $( 'body' );
+		const $stepOneNextButton = $( '#main-donations-step-one-next' );
+		const $stepTwoNextButton = $( '#main-donations-step-two-next' );
+		const $stepThreeNextButton = $( '#main-donations-step-3-next' );
+		const $stepFourNextButton = $( '#main-donations-step-4-next' );
+
+		$body
 			.on( 'keydown', ( e ) => {
 				let enterPressed = false;
 				if ( e.key !== undefined && e.key === 'Enter' ) {
@@ -146,66 +201,33 @@ const GWMainDonations = ( () => {
 
 				if ( enterPressed ) {
 					e.preventDefault();
-					const activeStepConfirmButton = $( '.active-step' )
+					const activeStepNextButton = $( '.active-step' )
 						.find( '.main-donations-next-button.active' );
 
-					if ( activeStepConfirmButton.length ) {
-						activeStepConfirmButton.trigger( 'click' );
+					if ( activeStepNextButton.length ) {
+						activeStepNextButton.trigger( 'click' );
 					}
 				}
 			} )
-			.on( 
-				'click', 
-				'.designee-search-results a, #main-donations-designee-browse-list a', 
-				( e ) => {
-				e.preventDefault();
-				e.stopImmediatePropagation();
-				const $singleDesignee = $( '#single_designee' );
-				const $singleDesigneeDesignated = $( '#single_designee_designated' );
-				const designeeId = $( e.target ).data( 'designeeId' );
-
-				if ( ! $singleDesigneeDesignated.prop( 'checked' ) ) {
-					console.log( 'checking prop' );
-					$singleDesigneeDesignated
-						.prop( 'checked', true )
-						.trigger( 'click' )
-						.trigger( 'change' );
-				}
-				$singleDesignee
-					.val( designeeId )
-					.trigger( 'change' );
-
-				makeStepTwoConfirmText();
-				$stepTwoConfirmButton.addClass( 'active' );
-				scrollToAndFlashConfirm( $stepTwoConfirmButton );
-			} )
-			.on( 'click', '.designee-browse-list-type', ( e ) => {
-				e.preventDefault();
-				$( e.target )
-					.closest( '.designee-browse-list-type' )
-					.toggleClass( 'closed' )
-					.siblings()
-					.addClass( 'closed' );
-			} )
 			.on( 'keyup change', '#main-donations-step-3-fields input.required', ( e ) => {
-				let showConfirmButton = true;
+				let showNextButton = true;
 
 				$( '#main-donations-step-3-fields' )
 					.find( 'input.required' )
 					.each( ( i, el ) => {
-						if ( ! showConfirmButton ) {
+						if ( ! showNextButton ) {
 							return;
 						}
 						if ( $( el ).val() === '' ) {
-							showConfirmButton = false;
+							showNextButton = false;
 						}
 					} );
 
-				if ( showConfirmButton ) {
-					$stepThreeConfirmButton.addClass( 'active' );
-					scrollToAndFlashConfirm( $stepThreeConfirmButton );
+				if ( showNextButton ) {
+					$stepThreeNextButton.addClass( 'active' );
+					flashNextButton( $stepThreeNextButton );
 				} else {
-					$stepThreeConfirmButton.removeClass( 'active' );
+					$stepThreeNextButton.removeClass( 'active' );
 				}
 			} )
 			.on( 
@@ -215,11 +237,14 @@ const GWMainDonations = ( () => {
 					e.preventDefault();
 					goToStep( '1' );
 			} )
+			.on( 'click', '#change-supporting-decision', ( e ) => {
+				e.preventDefault();
+				goToStep( '2' );
+			} )
 			// Link that unhides the Browse options
 			.on( 'click', '#browse-option-link', ( e ) => {
 				e.preventDefault();
-				$( '#browse-option' ).addClass( 'hidden' );
-				$( '#browse-container' ).removeClass( 'hidden' );
+				browseList.show();
 			} );
 
 			const $searchSection = $( '#main-donations-designee-search-section' );
@@ -231,9 +256,9 @@ const GWMainDonations = ( () => {
 						.prop( 'checked', true )
 						.trigger( 'click' )
 						.trigger( 'change' );
-					makeStepTwoConfirmText();
-					$stepTwoConfirmButton.addClass( 'active' );
-					scrollToAndFlashConfirm( $stepTwoConfirmButton );
+					//makeStepTwoNextText();
+					$stepTwoNextButton.addClass( 'active' );
+					flashNextButton( $stepTwoNextButton );
 				} )
 			$( '#main-donations-specific-designee' )
 				.on( 'click', ( e ) => {
@@ -248,7 +273,7 @@ const GWMainDonations = ( () => {
 		const $singleDesignee = $( '#single_designee' );
 		
 		$flexibleGiftTypeRadios.on( 'change', ( e ) => {
-			makeStepOneConfirmText();
+			//makeStepOneNextText();
 		} );
 
 		let stepOneScrollTimeout;
@@ -257,14 +282,15 @@ const GWMainDonations = ( () => {
 				clearTimeout( stepOneScrollTimeout );
 				const thisVal = $mainDonationsAmount.val().replace( /$/g, '' );
 				$otherAmount.val( thisVal );
-				makeStepOneConfirmText();
+				//makeStepOneNextText();
+				handleAmountDecision();
 				if ( parseFloat( thisVal ) > 0 ) {
-					$( '#main-donations-step-one-confirm' ).addClass( 'active' );
+					$( '#main-donations-step-one-next' ).addClass( 'active' );
 					stepOneScrollTimeout = setTimeout( () => {
-						scrollToAndFlashConfirm( $stepOneConfirmButton );
-					}, 1000 );
+						flashNextButton( $stepOneNextButton );
+					}, 500 );
 				} else {
-					$( '#main-donations-step-one-confirm' ).removeClass( 'active' );
+					$( '#main-donations-step-one-next' ).removeClass( 'active' );
 				}
 			} );
 
@@ -280,11 +306,19 @@ const GWMainDonations = ( () => {
 			.prop( 'checked', true )
 			.trigger( 'change' );
 
+		attachButtonHandlers();
+		attachGiftDetailsHandlers();
+		attachDesigneeHandlers();
+
 		function attachButtonHandlers() {
 			const $recurringRadio = $( '#level_flexiblegift_type2' );
 			const $recurringSelect = $( '#level_flexibleduration' );
 
-			$stepOneConfirmButton
+			const $stepTwoBackButton = $( '#main-donations-step-two-back' );
+			const $stepThreeBackButton = $( '#main-donations-step-three-back' );
+			const $stepFourBackButton = $( '#main-donations-step-four-back' );
+
+			$stepOneNextButton
 				.on( 'click', ( e ) => {
 					e.preventDefault();
 					const frequency = $recurringRadio.prop( 'checked' ) &&
@@ -292,40 +326,116 @@ const GWMainDonations = ( () => {
 						'Monthly' :
 						'Once';
 					$( '#frequency-decision' ).html( frequency );
-					$( '#amount-decision' ).html( '$' + $otherAmount.val() );
-					$( '#frequency-decision-item, #amount-decision-item' )
+					$( '#frequency-decision-item' )
 						.addClass( 'decided' )
 						.removeClass( 'undecided' );
+
+					$( '#frequency-decision-made' )
+						.prop( 'checked', true );
 					goToStep( '2' );
 				} );
 
-			$stepTwoConfirmButton
+			$stepTwoNextButton
 				.on( 'click', ( e ) => {
 					e.preventDefault();
+					$( '#supporting-decision' ).html( getDesignee() );
+					$( '#supporting-decision-item' )
 						.addClass( 'decided' )
 						.removeClass( 'undecided' );
 					goToStep( '3' );
 				} );
 
-			$stepThreeConfirmButton
+			$stepThreeNextButton
 				.on( 'click', ( e ) => {
 					e.preventDefault();
 					goToStep( '4' );
 				} );
+
+			$stepTwoBackButton
+				.on( 'click', ( e ) => {
+					e.preventDefault();
+					goToStep( '1' );
+				} );
 		}
 
+		function attachDesigneeHandlers() {
+			$body
+				.on( 
+					'click', 
+					'.designee-search-results a, #main-donations-designee-browse-list a', 
+					( e ) => {
+					e.preventDefault();
+					e.stopImmediatePropagation();
+					const $singleDesignee = $( '#single_designee' );
+					const $singleDesigneeDesignated = $( '#single_designee_designated' );
+					const designeeId = $( e.target ).data( 'designeeId' );
 
-		function makeStepOneConfirmText() {
-			const $confirmText = $( '#main-donations-step-one-confirm-text' );
+					if ( ! $singleDesigneeDesignated.prop( 'checked' ) ) {
+						$singleDesigneeDesignated
+							.prop( 'checked', true )
+							.trigger( 'click' )
+							.trigger( 'change' );
+					}
+
+					$singleDesignee
+						.val( designeeId )
+						.trigger( 'change' );
+
+					browseList.hide();
+					searchResultsList.hide();
+
+					//makeStepTwoNextText();
+					$stepTwoNextButton.addClass( 'active' );
+					flashNextButton( $stepTwoNextButton );
+				} )
+				.on( 'click', '.designee-browse-list-type', ( e ) => {
+					e.preventDefault();
+					browseList.toggleGroup( $( e.target ) );
+				} );
+
+			$( '#main-donations-designee-search' )
+				.on( 'focus', ( e ) => {
+					searchResultsList.show();
+				} );
+		}
+
+		function attachGiftDetailsHandlers() {
+			$( '#frequency-decision-made, #amount-decision-made' )
+				.on( 'change', ( e ) => {
+					//giftDetailsList.dynamicShow();
+				} );
+		}
+
+		function flashNextButton( $nextButton ) {
+			$nextButton.addClass( 'callout' );
+			setTimeout( () => {
+				$nextButton.removeClass( 'callout' );
+			}, 300 );
+		}
+
+		function handleAmountDecision() {
+			// TODO Maybe some validation here
+			$( '#amount-decision' ).html( '$' + $otherAmount.val() );
+			$( '#amount-decision-item' )
+				.addClass( 'decided' )
+				.removeClass( 'undecided' );
+
+			$( '#amount-decision-made' )
+				.prop( 'checked', true )
+				.trigger( 'change' );
+		}
+
+		function makeStepOneNextText() {
+			const $nextText = $( '#main-donations-step-one-next-text' );
 			const frequency = getFrequency() === 'Monthly' ? '/Month' : ' (One-Time)';
 			const amount = $otherAmount.val();
-			$confirmText.html( '$' + amount + frequency );
+			$nextText.html( '$' + amount + frequency );
 		}
 
-		function makeStepTwoConfirmText() {
-			const $confirmText = $( '#main-donations-step-two-confirm-text' );
+		function makeStepTwoNextText() {
+			const $nextText = $( '#main-donations-step-two-next-text' );
 			const designee = getDesignee();
-			$confirmText.html( designee );
+			$nextText.html( designee );
 		}
 
 		function getFrequency() {
@@ -345,12 +455,9 @@ const GWMainDonations = ( () => {
 			}
 		}
 
-		function scrollToAndFlashConfirm( $confirmButton ) {
-			GWUtilities.scrollTo( $confirmButton, () => {
-				$confirmButton.addClass( 'callout' );
-				setTimeout( () => {
-					$confirmButton.removeClass( 'callout' );
-				}, 350 );
+		function scrollToAndFlashNext( $nextButton ) {
+			GWUtilities.scrollTo( $nextButton, () => {
+				flashNextButton( $nextButton );
 			} );
 		}
 	}
@@ -369,6 +476,8 @@ const GWMainDonations = ( () => {
 			.removeClass( 'active-step' )
 			.addClass( 'hidden' );
 	}
+
+
 
 	return {
 		init : init,
@@ -460,18 +569,3 @@ const GWRockerSwitches = ( () => {
 	};
 } )();
 
-( ( $ ) => {
-	GWUtilities.scrollTo = function( anchor, cb ) {
-		const $anchor = typeof anchor === 'string' ? $( anchor ) : anchor;
-		if ( ! $anchor.length ) {
-			console.log( 'anchor does not exist' );
-			return;
-		}
-		cb = typeof cb === 'function' ? cb : function() {};
-		
-		const offsetTop = $anchor.offset().top;
-		$( 'html, body' ).animate( {
-			scrollTop : offsetTop + 'px'
-		}, 'fast', cb );
-	}
-} )( jQuery );

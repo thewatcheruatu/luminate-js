@@ -1,3 +1,18 @@
+<aside id='main-donations-decisions-container'>
+	<h4>Your Gift Details</h4>
+	<ul id='main-donations-decisions'>
+		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>Frequency: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
+		<li id='amount-decision-item' class='undecided'><span class='decision-label'>Amount: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
+		<li id='supporting-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='supporting-decision'></span> <a href='#' id='change-supporting-decision' class='change-decision'>(Change)</a></li>
+	</ul>
+
+	<div class='hidden'>
+		<input type='checkbox' id='frequency-decision-made'>
+		<input type='checkbox' id='amount-decision-made'>
+		<input type='checkbox' id='designee-decision-made'>
+	</div>
+</aside>
+
 <section id='main-donations-steps'>
 
 	<section id='main-donations-step-1' class='main-donations-step active-step'>
@@ -8,9 +23,9 @@
 		</ul>
 
 		<h2>How Much</h2>
-		<p><span class='monetary-text-input'><input type='text' id='main-donations-amount' class='main-donations-text-input'></span></p>
+		<p><span class='monetary-text-input'><input type='number' id='main-donations-amount' class='main-donations-text-input'></span></p>
 
-		<button id='main-donations-step-one-confirm' class='main-donations-next-button'><strong>Next:</strong> <span id='main-donations-step-one-confirm-text'><span></button>
+		<button id='main-donations-step-one-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-one-next-text'><span></button>
 	</section><!-- End : #main-donations-step-1 -->
 
 	<section id='main-donations-step-2' class='main-donations-step hidden'>
@@ -38,58 +53,45 @@
 		</section>
 
 		<button id='main-donations-step-two-back' class='main-donations-back-button'><strong>Back</strong></button>
-		<button id='main-donations-step-two-confirm' class='main-donations-next-button'><strong>Next:</strong> <span id='main-donations-step-two-confirm-text'><span></button>
+		<button id='main-donations-step-two-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-two-next-text'><span></button>
 
 	</section><!-- End: #main-donations-step-2 -->
 
 	<section id='main-donations-step-3' class='main-donations-step hidden'>
 		<h2>Billing Info</h2>
 		<div id='main-donations-step-3-fields'></div>
-		<button id='main-donations-step-3-confirm' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-3-confirm-text'><span></button>
+		<button id='main-donations-step-3-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-3-next-text'><span></button>
 	</section>
 
 	<section id='main-donations-step-4' class='main-donations-step hidden'>
 		<h2>Payment Info</h2>
 		<div id='main-donations-step-4-fields'></div>
-		<button id='main-donations-step-4-confirm' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-4-confirm-text'><span></button>
+		<button id='main-donations-step-4-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-4-next-text'><span></button>
 	</section>
 
 </section><!-- End: #main-donations-steps -->
 
-<aside id='main-donations-decisions-container'>
-	<h4>Your Gift Details</h4>
-	<ul id='main-donations-decisions'>
-		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>Frequency: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
-		<li id='amount-decision-item' class='undecided'><span class='decision-label'>Amount: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
-		<li id='supporting-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='supporting-decision'></span> <a href='#' id='change-supporting-decision' class='change-decision'>(Change)</a></li>
-	</ul>
-</aside>
 
 <style class='custom-style'>
 	/* Start: Major Form Layout */
-	#main-donations-form {
-		align-items : flex-start;
-		display : flex;
-		flex-wrap : wrap;
-		justify-content : space-between;
-	}
-
-	#main-donations-steps {
-		flex-basis : 66%;
-	}
-
 	#main-donations-decisions-container {
 		border : .2em solid #0096D6;
-		flex-basis : 30%;
+		margin-bottom : 1.5em;
 		padding : .5em 1em;
 	}
 
 	/* End : Major Form Layout */
+
 	.main-donations-step {
 		padding-bottom : 2em;
 	}
 
 	/* Start: General UI */
+	.main-donations-next-button,
+	.main-donations-back-button {
+		border-radius : .75em;
+	}
+
 	.main-donations-next-button {
 		opacity : 0;
 		transition : background-color .3s ease-in-out, border-color .3s ease-in-out,  opacity .3s ease-in-out;
@@ -183,6 +185,7 @@
 	/* End: Designee Browse List */
 
 	.rocker {
+		align-items : stretch;
 		display : flex;
 		list-style-type : none;
 		padding-left : 0;
@@ -192,6 +195,18 @@
 	.rocker li {
 		display : inline-block;
 		flex : 50%;
+	}
+
+	.rocker button {
+		height : 100%;
+	}
+
+	.rocker button {
+		border-radius : 0 1em 1em 0;
+	}
+
+	.rocker li:first-child button {
+		border-radius : 1em 0 0 1em;
 	}
 
 	.rocker button {
@@ -231,4 +246,24 @@
 	.rocker input {
 		/*display : none;*/
 	}
+
+@media only screen and ( min-width : 50em ) {
+	/* Start: Major Form Layout */
+	#main-donations-form {
+		align-items : flex-start;
+		display : flex;
+		flex-wrap : wrap;
+		justify-content : space-between;
+	}
+
+	#main-donations-steps {
+		flex-basis : 66%;
+	}
+
+	#main-donations-decisions-container {
+		flex-basis : 30%;
+	}
+
+	/* End : Major Form Layout */
+}
 </style>
