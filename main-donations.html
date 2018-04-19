@@ -3,7 +3,7 @@
 	<ul id='main-donations-decisions'>
 		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>Frequency: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
 		<li id='amount-decision-item' class='undecided'><span class='decision-label'>Amount: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
-		<li id='supporting-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='supporting-decision'></span> <a href='#' id='change-supporting-decision' class='change-decision'>(Change)</a></li>
+		<li id='designee-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='designee-decision'></span> <a href='#' id='change-designee-decision' class='change-decision'>(Change)</a></li>
 	</ul>
 
 	<div class='hidden'>
@@ -34,6 +34,12 @@
 			<li><button id='main-donations-greatest-need'>Greatest Need</button></li>
 			<li><button id='main-donations-specific-designee'>Specific Designee</button></li>
 		</ul>
+
+		<section id='greatest-need-section' class='hidden'>
+			<h3>Greatest Need</h3>
+			<ul id='greatest-need-list'>
+			</ul>
+		</section>
 
 		<section id='main-donations-designee-search-section' class='hidden'>
 			<h3>Search</h3>
@@ -76,8 +82,9 @@
 	/* Start: Major Form Layout */
 	#main-donations-decisions-container {
 		border : .2em solid #0096D6;
+		border-radius : 1em;
 		margin-bottom : 1.5em;
-		padding : .5em 1em;
+		padding : .75em 1em;
 	}
 
 	/* End : Major Form Layout */
