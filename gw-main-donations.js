@@ -1,9 +1,17 @@
 /* global GWUtilities */
+/*
+ * Dependencies:
+ * GWDesigneeSearch
+ * GWFormDesignees
+ * jQuery
+ */
 'use strict';
 
 const GWMainDonations = ( () => {
 	let $;
 	let GWDesigneeSearch;
+	let GWFormDesignees;
+	let greatestNeedIds;
 	let initialized = false;
 
 	function init( dependencies ) {
@@ -14,6 +22,8 @@ const GWMainDonations = ( () => {
 		dependencies = dependencies || {};
 		$ = dependencies.jQuery || jQuery;
 		GWDesigneeSearch = dependencies.GWDesigneeSearch;
+		GWFormDesignees = dependencies.GWFormDesignees;
+		greatestNeedIds = dependencies.greatestNeedIds || [];
 
 		if ( $ === undefined ) {
 			console.log( '$ was undefined in GWMainDonations' );
@@ -22,6 +32,9 @@ const GWMainDonations = ( () => {
 			console.log( 
 				'GWDonations requires jQuery v1.7 or greater. Found v' + $.fn.jquery 
 			);
+			return false;
+		} else if ( GWFormDesignees === undefined ) {
+			console.log( 'GWFormDesignees is a required dependency of GWMainDonations' );
 			return false;
 		} else if ( GWDesigneeSearch === undefined ) {
 			console.log( 'GWDesigneeSearch is a required dependency of GWMainDonations' );
@@ -40,12 +53,16 @@ const GWMainDonations = ( () => {
 					GWRockerSwitches.init( { jQuery : $ } );
 
 					attachHandlers();
+					GWDesigneeSearch.init(
+						{ jQuery : $, GWFormDesignees : GWFormDesignees }
+					);
 					GWDesigneeSearch.attach( {
 						searchBox : '#main-donations-designee-search',
 						searchSubmit : '#main-donations-designee-search-submit',
 						searchResults : '#main-donations-designee-search-results'
 					} );
 
+					makeGreatestNeedList();
 					makeDesigneeBrowseList();
 
 					// Assuming everything went as planned, hide the original form
@@ -127,6 +144,8 @@ const GWMainDonations = ( () => {
 						.on( 'click', ( e ) => {
 							e.preventDefault();
 							$searchSection.addClass( 'hidden' );
+							greatestNeedList.show();
+							/*
 							$( '#single_designee_unrestricted' )
 								.prop( 'checked', true )
 								.trigger( 'click' )
@@ -134,11 +153,13 @@ const GWMainDonations = ( () => {
 							//makeStepTwoNextText();
 							$stepTwoNextButton.addClass( 'active' );
 							//flashNextButton( $stepTwoNextButton );
+							*/
 						} )
 					$( '#main-donations-specific-designee' )
 						.on( 'click', ( e ) => {
 							e.preventDefault();
 							$searchSection.removeClass( 'hidden' );
+							greatestNeedList.hide();
 						} );
 
 				const $flexibleGiftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
@@ -234,7 +255,8 @@ const GWMainDonations = ( () => {
 					$body
 						.on( 
 							'click', 
-							'.designee-search-results a, #main-donations-designee-browse-list a', 
+							'.designee-search-results a, #main-donations-designee-browse-list a,' +
+							'#greatest-need-list a', 
 							( e ) => {
 							e.preventDefault();
 							e.stopImmediatePropagation();
@@ -255,6 +277,7 @@ const GWMainDonations = ( () => {
 
 							browseList.hide();
 							searchResultsList.hide();
+							greatestNeedList.hide();
 
 							//makeStepTwoNextText();
 							handleDesigneeDecision();
@@ -394,10 +417,10 @@ const GWMainDonations = ( () => {
 				let designees = [];
 				let designationTypes =[];
 
-				GWDesigneeSearch.getDesignees()
+				GWFormDesignees.getDesignees()
 					.then( ( _designees ) => {
 						designees = _designees;
-						return GWDesigneeSearch.getDesignationTypes();
+						return GWFormDesignees.getDesignationTypes();
 					} )
 					.then( ( _designationTypes ) => {
 						if ( ! designees ) {
@@ -454,6 +477,25 @@ const GWMainDonations = ( () => {
 						console.log( _error );
 					} );
 			}
+
+			function makeGreatestNeedList() {
+				const $greatestNeedList = $( '#greatest-need-list' );
+				GWFormDesignees.getDesignees( greatestNeedIds )
+					.then( ( _designees ) => {
+						const greatestNeedArray = [];
+						for ( let i = 0; i < _designees.length; i++ ) {
+							const thisDesignee = _designees[i];
+							greatestNeedArray.push(
+								'<li><a href="#" data-designee-id="' + thisDesignee.id +
+								'">' + thisDesignee.name + '</a></li>'
+							);
+						}
+						$greatestNeedList.html( greatestNeedArray.join( '\n' ) );
+					} )
+					.catch( ( _error ) => {
+						console.log( _error );
+					} );
+			}
 		}
 	}
 
@@ -479,17 +521,6 @@ const GWMainDonations = ( () => {
 	};
 
 	const giftDetailsList = {
-		dynamicShow : function() {
-			console.log( 'dynamic' );
-			if ( $( '#frequency-decision-made' ).prop( 'checked' ) ||
-				$( '#amount-decision-made' ).prop( 'checked' ) ||
-				$( '#designee-decision-made' ).prop( 'checked' ) ) {
-				this.show();
-			} else {
-				this.hide();
-			}
-		},
-
 		hide : function() {
 			$( '#main-donations-decisions-container' ).addClass( 'hidden' );
 		},
@@ -500,6 +531,13 @@ const GWMainDonations = ( () => {
 	};
 
 	const greatestNeedList = {
+		hide : function() {
+			$( '#greatest-need-section' ).addClass( 'hidden' );
+		}, 
+
+		show : function() {
+			$( '#greatest-need-section' ).removeClass( 'hidden' );
+		},
 	};
 
 	const searchResultsList = {
@@ -627,16 +665,18 @@ const GWRockerSwitches = ( () => {
 
 /*
  * Initialization Example
+ * v2.0
  * Put this in an HTML Content section on the Luminate donation form
  
 <script src='../js/luminateExtend.js'></script>
+<script src='../js/gwu_wrpr/gw-form-designees.js'></script>
 <script src='../js/gwu_wrpr/gw-designee-search.js'></script>
 <script src='../js/gwu_wrpr/gw-main-donations.js'></script>
 <script>
 (function( $ ) {
 
 	// GW Designee Search
-	if ( typeof GWDesigneeSearch !== 'undefined' ) {
+	if ( typeof GWFormDesignees !== 'undefined' ) {
 		var apiConfig = {
 			apiKey : '[[S0:CONVIO_API_KEY]]',
 			path : {
@@ -646,8 +686,8 @@ const GWRockerSwitches = ( () => {
 		};
 
 		var donationFormId = '2522';
-		GWDesigneeSearch.init( 
-			{ jQuery : jQuery, luminateExtend : luminateExtend, }, 
+		GWFormDesignees.init( 
+			{ luminateExtend : luminateExtend }, 
 			{ apiConfig : apiConfig, donationFormId : donationFormId },
 		);
 	}
@@ -658,6 +698,7 @@ if ( typeof GWMainDonations !== 'undefined' ) {
 	GWMainDonations
 		.init( { 
 			jQuery : jQuery, 
+			GWFormDesignees : GWFormDesignees,
 			GWDesigneeSearch : GWDesigneeSearch,
 			greatestNeedIds : [
 				3082, // Graduate Fellowships Fund
