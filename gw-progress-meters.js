@@ -180,37 +180,45 @@ function GWProgressMeters( dependencies, options ) {
 		if ( data.goal === undefined || data.current === undefined ) {
 			throw new Error( 'Progress readout "goal" and "current" data cannot be undefined.' );
 		}
-		$thisReadout = $( this.selector );
-		this.goal = data.goal;
-		this.current = data.current;
-		
-		if ( this.goalType === 'cash' ) {
-			//Cash values need to be made to look like cash values
-			goalHtml = GWUtilities.formatMoney( this.goal, { displayCents: this.options.displayCents } );
-			absoluteDifferenceHtml = GWUtilities.formatMoney( Math.abs( this.goal - this.current ), { displayCents: this.options.displayCents } );
-		} else {
-			//currentHtml = this.goal;
-			goalHtml = this.goal + ' donors';
-			absoluteDifferenceHtml = Math.abs( this.goal - this.current ) + ' donors';
-		}
-		
-		$current = $thisReadout.find( '.current' );
-		easeDuration = 5000;
-		ease( ( new Date() ).getTime(), 0, this.current, easeDuration, { algorithm: Ease.dramatic }, function( currentValue ) {
-			self.setCurrentValueDisplay( currentValue );
-		});
-		
-		setTimeout( function() {
-			if ( self.goal >= self.current ) {
-				$thisReadout.find( '.to-go-datum' ).removeClass( 'transparent' ).find( '.to-go' ).html( absoluteDifferenceHtml );
-			} else {
-				$thisReadout.find( '.to-go-datum' ).addClass( 'hidden' );
-				$thisReadout.find( '.surplus-datum' ).removeClass( 'hidden' ).removeClass( 'transparent' ).find( '.surplus' ).html( absoluteDifferenceHtml );
-			}
-		}, easeDuration );
-		
-		
-		$thisReadout.find( '.goal' ).html( goalHtml );
+
+		GWUtilities.loadClass( 'GWAnimation' )
+			.then( () => {
+				$thisReadout = $( this.selector );
+				this.goal = data.goal;
+				this.current = data.current;
+				
+				if ( this.goalType === 'cash' ) {
+					//Cash values need to be made to look like cash values
+					goalHtml = GWUtilities.formatMoney( this.goal, { displayCents: this.options.displayCents } );
+					absoluteDifferenceHtml = GWUtilities.formatMoney( Math.abs( this.goal - this.current ), { displayCents: this.options.displayCents } );
+				} else {
+					//currentHtml = this.goal;
+					goalHtml = this.goal + ' donors';
+					absoluteDifferenceHtml = Math.abs( this.goal - this.current ) + ' donors';
+				}
+				
+				$current = $thisReadout.find( '.current' );
+				easeDuration = 5000;
+				const Ease = GWAnimation.Ease;
+				Ease.do( ( new Date() ).getTime(), 0, this.current, easeDuration, { algorithm: Ease.dramatic }, function( currentValue ) {
+					self.setCurrentValueDisplay( currentValue );
+				});
+				
+				setTimeout( function() {
+					if ( self.goal >= self.current ) {
+						$thisReadout.find( '.to-go-datum' ).removeClass( 'transparent' ).find( '.to-go' ).html( absoluteDifferenceHtml );
+					} else {
+						$thisReadout.find( '.to-go-datum' ).addClass( 'hidden' );
+						$thisReadout.find( '.surplus-datum' ).removeClass( 'hidden' ).removeClass( 'transparent' ).find( '.surplus' ).html( absoluteDifferenceHtml );
+					}
+				}, easeDuration );
+				
+				
+				$thisReadout.find( '.goal' ).html( goalHtml );
+			} )
+			.catch( ( _error ) => {
+				console.log( _error );
+			} );
 
 	};
 	
@@ -228,98 +236,6 @@ function GWProgressMeters( dependencies, options ) {
 		$current.html( currentHtml );
 	};
 	
-	/*
-	 * Algorithms borrowed from Robert Penner
-	 * Found here: http://gizma.com/easing/
-	 * More here: http://robertpenner.com/easing/
-	 */
-	var Ease = {};
-	/*
-	 * For all functions:
-	 * t: time since beginning of animation
-	 * b: beginning position
-	 * c: change in position (i.e., distance we ultimately want to travel over easing duration)
-	 * d: duration of animation
-	 * Just a gotcha to mention: these functions will continue to produce numbers
-	 * beyond the point where t > d, so you need to check you haven't exceeded
-	 * duration from wherever you're calling these functions.
-	 */
-	Ease.inOutExpo = function (t, b, c, d) {
-		t /= d/2;
-		if (t < 1) return c/2 * Math.pow( 2, 10 * (t - 1) ) + b;
-		t--;
-		return c/2 * ( -Math.pow( 2, -10 * t) + 2 ) + b;
-	};
-	
-	Ease.inOutQuad = function (t, b, c, d) {
-		t /= d/2;
-		if (t < 1) return c/2*t*t + b;
-		t--;
-		return -c/2 * (t*(t-2) - 1) + b;
-	};
-	
-	Ease.inOutQuart = function (t, b, c, d) {
-		t /= d/2;
-		if (t < 1) return c/2*t*t*t*t + b;
-		t -= 2;
-		return -c/2 * (t*t*t*t - 2) + b;
-	};
-	
-	Ease.inOutQuint = function (t, b, c, d) {
-		t /= d/2;
-		if (t < 1) return c/2 * Math.pow( t, 5 ) + b;
-		t -= 2;
-		return c/2 * (Math.pow( t, 5 ) + 2) + b;
-	};
-	
-	Ease.outExpo = function (t, b, c, d) {
-		return c * ( -Math.pow( 2, -10 * t/d ) + 1 ) + b;
-	};
-	
-	Ease.outQuart = function (t, b, c, d) {
-		t /= d;
-		t--;
-		return -c * (t*t*t*t - 1) + b;
-	};
-	
-	Ease.dramatic = function( t, b, c, d ) {
-		t /= d/2;
-		if (t < 1) return c/2 * Math.pow( t, 13 ) + b;
-		t -= 2;
-		return c/2 * (Math.pow( t, 13 ) + 2) + b;
-	};
-	
-	function ease( startTime, startValue, endValue, duration, options, callback ) {
-		var currentValue;
-		var diffTime;
-		var diffTimePercent;
-		var diffValue;
-		var endTime;
-		
-		diffTime = ( new Date() ).getTime() - startTime;
-		diffValue = endValue - startValue;
-		if ( typeof options === 'function' ) {
-			callback = options;
-			options = undefined;
-		}
-		options = options || {};
-		options.algorithm = options.algorithm || Ease.inOutExpo;
-		//default: 60 frames/sec (well, roughly, owing to the nature of timeouts)
-		options.interval = options.interval || 1000/60;
-		options.slowmoTriggered = options.slowmoTriggered || false;
-		
-
-		
-		if ( diffTime >= duration ) {
-			currentValue = endValue;
-		} else {
-			currentValue = Math.round( options.algorithm( diffTime, startValue, diffValue, duration ) );
-			setTimeout( function() {
-				ease( startTime, startValue, endValue, duration, options, callback );
-			}, options.interval );
-		}
-		callback( currentValue );
-	}
 	
 	return {
 		ProgressMeter : ProgressMeter,
