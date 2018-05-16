@@ -1,9 +1,9 @@
 <aside id='main-donations-decisions-container'>
 	<h4>Your Gift Details</h4>
 	<ul id='main-donations-decisions'>
-		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>Frequency: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
-		<li id='amount-decision-item' class='undecided'><span class='decision-label'>Amount: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
-		<li id='designee-decision-item' class='undecided'><span class='decision-label'>Supporting: </span> <span id='designee-decision'></span> <a href='#' id='change-designee-decision' class='change-decision'>(Change)</a></li>
+		<li id='frequency-decision-item' class='undecided'><span class='decision-label'>How Often: </span> <span id='frequency-decision'></span> <a href='#' id='change-frequency-decision' class='change-decision'>(Change)</a></li>
+		<li id='amount-decision-item' class='undecided'><span class='decision-label'>How Much: </span> <span id='amount-decision'></span> <a href='#' id='change-amount-decision' class='change-decision'>(Change)</a></li>
+		<li id='designee-decision-item' class='undecided'><span class='decision-label'>Where it Goes: </span> <span id='designee-decision'></span> <a href='#' id='change-designee-decision' class='change-decision'>(Change)</a></li>
 	</ul>
 
 	<div class='hidden'>
@@ -23,9 +23,11 @@
 		</ul>
 
 		<h2>How Much</h2>
-		<p><span class='monetary-text-input'><input type='number' id='main-donations-amount' class='main-donations-text-input'></span></p>
+		<p><span class='monetary-text-input'><input type='number' id='main-donations-amount' class='main-donations-text-input' min='5'></span></p>
 
-		<button id='main-donations-step-one-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-one-next-text'><span></button>
+		<div id='main-donations-step-one-buttons'>
+			<button id='main-donations-step-one-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-one-next-text'><span></button>
+		</div>
 	</section><!-- End : #main-donations-step-1 -->
 
 	<section id='main-donations-step-2' class='main-donations-step hidden'>
@@ -34,6 +36,8 @@
 			<li><button id='main-donations-greatest-need'>Greatest Need</button></li>
 			<li><button id='main-donations-specific-designee'>Specific Designee</button></li>
 		</ul>
+
+		<div id='designee-selection'>Current Selection: <span id='current-designee-selection'>None</span></div>
 
 		<section id='greatest-need-section' class='hidden'>
 			<h3>Greatest Need</h3>
@@ -66,12 +70,14 @@
 	<section id='main-donations-step-3' class='main-donations-step hidden'>
 		<h2>Billing Info</h2>
 		<div id='main-donations-step-3-fields'></div>
+		<button id='main-donations-step-three-back' class='main-donations-back-button'><strong>Back</strong></button>
 		<button id='main-donations-step-3-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-3-next-text'><span></button>
 	</section>
 
 	<section id='main-donations-step-4' class='main-donations-step hidden'>
 		<h2>Payment Info</h2>
 		<div id='main-donations-step-4-fields'></div>
+		<button id='main-donations-step-four-back' class='main-donations-back-button'><strong>Back</strong></button>
 		<button id='main-donations-step-4-next' class='main-donations-next-button'><strong>Next</strong> <span id='main-donations-step-4-next-text'><span></button>
 	</section>
 
@@ -155,6 +161,23 @@
 		padding-left : 1.75em;
 	}
 
+	/* Start: Where It Goes */
+
+	#designee-selection {
+		border : .2em solid #7ac143;
+		border-left : 0;
+		border-right : 0;
+		margin : .5em 0;
+		padding : .5em;
+	}
+
+	#current-designee-selection {
+		color : #8ec4dd;
+		display : block;
+		font-size : 1.33em;
+		font-weight : bold;
+	}
+
 	/* Start: Designee Browse List */
 	#browse-container {
 		margin-top : 1.5em;
@@ -190,6 +213,8 @@
 		margin-bottom : .5em;
 	}
 	/* End: Designee Browse List */
+
+	/* End: Where It Goes */
 
 	.rocker {
 		align-items : stretch;
@@ -272,5 +297,31 @@
 	}
 
 	/* End : Major Form Layout */
+}
+
+
+/* Some overrides to general styles */
+main {
+	background: url( ../images/gwu_wrpr/main-donation-bg-01.jpg ) no-repeat center center;
+	background-size : cover;
+}
+
+#ProcessForm {
+	background-color : rgba( 255, 255, 255, .9 );
+	border : .3em solid #0096d6;
+	border-radius : 1em;
+	margin : 0 auto;
+	padding : 1em;
+}
+
+@media only screen and ( min-width : 75em ) {
+	main {
+		margin : 0;
+		width : 100%;
+	}
+
+	#ProcessForm {
+		width : 65em;
+	}
 }
 </style>

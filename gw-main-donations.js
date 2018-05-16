@@ -46,7 +46,9 @@ const GWMainDonations = ( () => {
 
 		function onDocumentReady() {
 			const $ProcessForm = $( '#ProcessForm' );
-			$ProcessForm.addClass( 'hidden' );
+			$ProcessForm
+				.children( '.donation-form-container' )
+				.addClass( 'hidden' );
 
 			loadMainDonationsSection()
 				.then( ( _$mainDonationsSection ) => {
@@ -116,10 +118,29 @@ const GWMainDonations = ( () => {
 							} );
 
 						if ( showNextButton ) {
-							$stepThreeNextButton.addClass( 'active' );
-							//flashNextButton( $stepThreeNextButton );
+							makeNextButtonActive( $stepThreeNextButton );
 						} else {
-							$stepThreeNextButton.removeClass( 'active' );
+							makeNextButtonInactive( $stepThreeNextButton );
+						}
+					} )
+					.on( 'keyup change', '#main-donations-step-4-fields input.required', ( e ) => {
+						let showNextButton = true;
+
+						$( '#main-donations-step-4-fields' )
+							.find( 'input.required' )
+							.each( ( i, el ) => {
+								if ( ! showNextButton ) {
+									return;
+								}
+								if ( $( el ).val() === '' ) {
+									showNextButton = false;
+								}
+							} );
+
+						if ( showNextButton ) {
+							makeNextButtonActive( $stepFourNextButton );
+						} else {
+							makeNextButtonInactive( $stepFourNextButton );
 						}
 					} )
 					.on( 
@@ -184,12 +205,12 @@ const GWMainDonations = ( () => {
 						//makeStepOneNextText();
 						handleAmountDecision();
 						if ( parseFloat( thisVal ) > 0 ) {
-							$( '#main-donations-step-one-next' ).addClass( 'active' );
+							makeNextButtonActive( $( '#main-donations-step-one-next' ) );
 							stepOneScrollTimeout = setTimeout( () => {
 								//flashNextButton( $stepOneNextButton );
 							}, 500 );
 						} else {
-							$( '#main-donations-step-one-next' ).removeClass( 'active' );
+							makeNextButtonInactive( $( '#main-donations-step-one-next' ) );
 						}
 					} );
 
@@ -209,6 +230,7 @@ const GWMainDonations = ( () => {
 				attachGiftDetailsHandlers();
 				attachDesigneeHandlers();
 				attachReverseHandlers();
+				setFormDefaults();
 
 				function attachButtonHandlers() {
 					const $stepTwoBackButton = $( '#main-donations-step-two-back' );
@@ -244,10 +266,29 @@ const GWMainDonations = ( () => {
 							goToStep( '4' );
 						} );
 
+					$stepFourNextButton
+						.on( 'click', ( e ) => {
+							e.preventDefault();
+							//$( '#ProcessForm' ).submit();
+							$( '#pstep_next' ).click();
+						} );
+
 					$stepTwoBackButton
 						.on( 'click', ( e ) => {
 							e.preventDefault();
 							goToStep( '1' );
+						} );
+					
+					$stepThreeBackButton
+						.on( 'click', ( e ) => {
+							e.preventDefault();
+							goToStep( '2' );
+						} );
+
+					$stepFourBackButton
+						.on( 'click', ( e ) => {
+							e.preventDefault();
+							goToStep( '3' );
 						} );
 				}
 
@@ -281,7 +322,7 @@ const GWMainDonations = ( () => {
 
 							//makeStepTwoNextText();
 							handleDesigneeDecision();
-							$stepTwoNextButton.addClass( 'active' );
+							makeNextButtonActive( $stepTwoNextButton );
 							//flashNextButton( $stepTwoNextButton );
 						} )
 						.on( 'click', '.designee-browse-list-type', ( e ) => {
@@ -323,6 +364,23 @@ const GWMainDonations = ( () => {
 					}, 300 );
 				}
 
+				function getFrequency() {
+					const frequency = $( '#level_flexiblegift_type2' ).prop( 'checked' ) &&
+						$( '#level_flexibleduration' ).val() === 'M:0' ?
+						'Monthly' :
+						'Once';
+
+					return frequency;
+				}
+
+				function getDesignee() {
+					if ( ! $singleDesignee.prop( 'disabled' ) && $singleDesignee.val() !== '0') {
+						return $singleDesignee.find( 'option:selected' ).html();
+					} else {
+						return 'Greatest Need';
+					}
+				}
+
 				function handleAmountDecision() {
 					// TODO Maybe some validation here
 					$( '#amount-decision' ).html( '$' + $otherAmount.val() );
@@ -346,7 +404,8 @@ const GWMainDonations = ( () => {
 				}
 
 				function handleDesigneeDecision() {
-					$( '#designee-decision' ).html( getDesignee() );
+					$( '#designee-decision, #current-designee-selection' )
+						.html( getDesignee() );
 
 					$( '#designee-decision-item' )
 						.addClass( 'decided' )
@@ -369,23 +428,6 @@ const GWMainDonations = ( () => {
 					$nextText.html( designee );
 				}
 
-				function getFrequency() {
-					const frequency = $( '#level_flexiblegift_type2' ).prop( 'checked' ) &&
-						$( '#level_flexibleduration' ).val() === 'M:0' ?
-						'Monthly' :
-						'Once';
-
-					return frequency;
-				}
-
-				function getDesignee() {
-					if ( ! $singleDesignee.prop( 'disabled' ) && $singleDesignee.val() !== '0') {
-						return $singleDesignee.find( 'option:selected' ).html();
-					} else {
-						return 'Greatest Need';
-					}
-				}
-
 				function scrollToAndFlashNext( $nextButton ) {
 					GWUtilities.scrollTo( $nextButton, () => {
 						flashNextButton( $nextButton );
@@ -405,7 +447,7 @@ const GWMainDonations = ( () => {
 				return new Promise( ( resolve, reject ) => {
 					const $mainDonationsSection = $( '<section>' ).attr( 'id', 'main-donations-form' );
 					$mainDonationsSection.load( 'https://growlfrequency.com/work/luminate/js/gwu_wrpr/main-donations.html', () => {
-						$mainDonationsSection.prependTo( 'main' );
+						$mainDonationsSection.prependTo( '#ProcessForm' );
 						resolve( $mainDonationsSection );
 					} );
 
@@ -444,7 +486,7 @@ const GWMainDonations = ( () => {
 							$designeeBrowseList.append(
 								'<li class="designee-browse-list-type closed">' + 
 								'<span class="designee-browse-list-header">' + 
-								thisType.name + '</span>\n<ul>' + 
+								thisType.name + '</span>\n<ul class="browse-list-group">' + 
 								designeesByType[thisType.id].join( '\n' ) +
 								'</ul></li>' 
 							);
@@ -482,9 +524,21 @@ const GWMainDonations = ( () => {
 				const $greatestNeedList = $( '#greatest-need-list' );
 				GWFormDesignees.getDesignees( greatestNeedIds )
 					.then( ( _designees ) => {
+						/*
+						 * Have to jump through some hoops here to make sure designees
+						 * appear in the same order as they were fed to the initialization
+						 * script.
+						 */
+						const foundIds = _designees.map( ( current ) => {
+							return parseInt( current.id, 10 );
+						} );
 						const greatestNeedArray = [];
-						for ( let i = 0; i < _designees.length; i++ ) {
-							const thisDesignee = _designees[i];
+						for ( let i = 0; i < greatestNeedIds.length; i++ ) {
+							const indexOfId = foundIds.indexOf( greatestNeedIds[i] );
+							if ( indexOfId === -1 ) {
+								continue;
+							}
+							const thisDesignee = _designees[indexOfId];
 							greatestNeedArray.push(
 								'<li><a href="#" data-designee-id="' + thisDesignee.id +
 								'">' + thisDesignee.name + '</a></li>'
@@ -496,6 +550,35 @@ const GWMainDonations = ( () => {
 						console.log( _error );
 					} );
 			}
+
+			function makeNextButtonActive( $nextButton ) {
+				$nextButton
+					.addClass( 'active' )
+					.siblings( '.main-donations-back-button' )
+					.addClass( 'subordinate' )
+			}
+
+			function makeNextButtonInactive( $nextButton ) {
+				$nextButton
+					.removeClass( 'active' )
+					.siblings( '.main-donations-back-button' )
+					.removeClass( 'subordinate' )
+			}
+
+			function setFormDefaults() {
+				if( ! GWUtilities.queryString.get( 'set.OptionalRepeat' ) ) {
+					$( '#level_flexiblegift_type2' )
+						.prop( 'checked', true )
+						.trigger( 'change' );
+				}
+
+				if ( ! GWUtilities.queryString.get( 'set.Amount' ) ) {
+					$( '#main-donations-amount' )
+						.val( '15' )
+						.trigger( 'keyup' );
+				}
+			}
+
 		}
 	}
 
@@ -568,7 +651,8 @@ const GWMainDonations = ( () => {
 			.addClass( 'hidden' );
 	}
 
-
+	function selectDesignee( designee ) {
+	}
 
 	return {
 		init : init,
