@@ -14,7 +14,7 @@ const GWMainDonations = ( () => {
 	let greatestNeedIds;
 	let initialized = false;
 
-	function init( dependencies ) {
+	function init( dependencies, options ) {
 		if ( initialized ) {
 			return false;
 		}
@@ -24,7 +24,9 @@ const GWMainDonations = ( () => {
 		GWDesigneeSearch = dependencies.GWDesigneeSearch;
 		GWFormDesignees = dependencies.GWFormDesignees;
 		greatestNeedIds = dependencies.greatestNeedIds || [];
-		const backgroundImage = dependencies.backgroundImage || '../../images/gwu_wrpr/main-donation-bg-01.jpg'; 
+
+		options = options || {};
+		const backgroundImage = options.backgroundImage || '../../images/gwu_wrpr/main-donation-bg-01.jpg'; 
 
 		if ( $ === undefined ) {
 			console.log( '$ was undefined in GWMainDonations' );
@@ -73,7 +75,7 @@ const GWMainDonations = ( () => {
 
 					// Add the background image - low priority so this comes last
 					$( 'main' )
-						.css( 'background-image', backgroundImage );
+						.css( 'background-image', 'url( ' + backgroundImage + ' )' );
 				} )
 				.catch( ( _error ) => {
 					/*
@@ -806,6 +808,8 @@ if ( typeof GWMainDonations !== 'undefined' ) {
 				1001, // GW P&P
 				1047, // President's Fund for Excellence
 			],
+		},
+		{
 			backgroundImage : '../../images/gwu_wrpr/main-donation-bg-01.jpg ',
 		} );
 }
