@@ -149,6 +149,11 @@ const GWUtilities = ( function( $ ) {
 	};
 	
 	self.loadStylesheet = function( href ) {
+		/*
+		 * href parameter should be the path from the root css directory
+		 * e.g., https://secure2.convio.net/gwudev/css/themes/alphacube.css
+		 * would be passed as 'themes/alphacube.css'
+		 */
 		let thisPath;
 		
 		if ( self.loadedStylesheets.indexOf( href ) >= 0 ) {
@@ -165,6 +170,9 @@ const GWUtilities = ( function( $ ) {
 			thisPath = document.location.pathname;
 			if ( thisPath.indexOf( 'gwu/' ) >= 0 ) {
 				thisPath = thisPath.substring( 0, thisPath.indexOf( 'gwu/' ) + 4 ) + 
+					'css';
+			} else if ( thisPath.indexOf( 'gwudev/' ) >= 0 ) {
+				thisPath = thisPath.substring( 0, thisPath.indexOf( 'gwudev/' ) + 7 ) + 
 					'css';
 			} else if ( thisPath.indexOf( 'site/' ) >= 0 ) {
 				thisPath = thisPath.substring( 0, thisPath.indexOf( 'site/' ) ) + 

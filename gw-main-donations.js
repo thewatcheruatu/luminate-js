@@ -24,6 +24,7 @@ const GWMainDonations = ( () => {
 		GWDesigneeSearch = dependencies.GWDesigneeSearch;
 		GWFormDesignees = dependencies.GWFormDesignees;
 		greatestNeedIds = dependencies.greatestNeedIds || [];
+		const backgroundImage = dependencies.backgroundImage || '../../images/gwu_wrpr/main-donation-bg-01.jpg'; 
 
 		if ( $ === undefined ) {
 			console.log( '$ was undefined in GWMainDonations' );
@@ -69,6 +70,10 @@ const GWMainDonations = ( () => {
 
 					// Assuming everything went as planned, hide the original form
 					repurposeOriginalForm();
+
+					// Add the background image - low priority so this comes last
+					$( 'main' )
+						.css( 'background-image', backgroundImage );
 				} )
 				.catch( ( _error ) => {
 					/*
@@ -211,6 +216,16 @@ const GWMainDonations = ( () => {
 							}, 500 );
 						} else {
 							makeNextButtonInactive( $( '#main-donations-step-one-next' ) );
+						}
+					} )
+					.on( 'blur', ( e ) => {
+						const thisVal = $mainDonationsAmount.val().replace( /$/g, '' );
+
+						if ( parseFloat( thisVal ) < 5 ) {
+							$mainDonationsAmount.val( '5' ).trigger( 'keyup' );
+							$( '#main-donations-amount-warning' )
+								.html( 'Amount must be greater than or equal to $5.' )
+								.removeClass( 'hidden' );
 						}
 					} );
 
@@ -448,6 +463,7 @@ const GWMainDonations = ( () => {
 					const $mainDonationsSection = $( '<section>' ).attr( 'id', 'main-donations-form' );
 					$mainDonationsSection.load( 'https://growlfrequency.com/work/luminate/js/gwu_wrpr/main-donations.html', () => {
 						$mainDonationsSection.prependTo( '#ProcessForm' );
+						GWUtilities.loadStylesheet( '/gwu_wrpr/main-donations.css' );
 						resolve( $mainDonationsSection );
 					} );
 
@@ -790,6 +806,7 @@ if ( typeof GWMainDonations !== 'undefined' ) {
 				1001, // GW P&P
 				1047, // President's Fund for Excellence
 			],
+			backgroundImage : '../../images/gwu_wrpr/main-donation-bg-01.jpg ',
 		} );
 }
 
