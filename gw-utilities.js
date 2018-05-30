@@ -71,6 +71,49 @@ const GWUtilities = ( function( $ ) {
 		'GWModals' : 'gw-modals.js',
 		'GWProgressMeters' : 'gw-progress-meters.js'
 	};
+
+	self.cookies = {
+	};
+
+	self.cookies.set = function( cookieName, value, options ) {
+		options = options || {};
+
+		options.ttl = options.ttl || {
+			days : 0,
+			hours : 0,
+			minutes : 15,
+			seconds : 0
+		};
+
+		const ttl = ( 
+				( 24 * 60 * 60 * options.ttl.days ) +
+				( 60 * 60 * options.ttl.hours ) +
+				( 60 * options.ttl.minutes ) +
+				options.ttl.seconds 
+			) * 1000;
+
+		const currentTime = ( new Date() ).getTime();
+		const expiresTime = currentTime + ttl;
+		let expires = new Date();
+		expires.setTime( expiresTime );
+
+		document.cookie = cookieName + '=' + value + ';' + 
+			expires.toUTCString();
+	}
+
+	self.cookies.get = function( cookieName ) {
+		cookieName += '=';
+		const cookies = decodeURIComponent( document.cookie );
+		const cookieArray = cookies.split( ';' );
+		for ( let i = 0; i < cookieArray.length; i++ ) {
+			const thisCookie = cookieArray[i].trim();
+			if ( thisCookie.indexOf( cookieName ) === 0 ) {
+				return thisCookie.substring( cookieName.length, thisCookie.length );
+			}
+		}
+
+		return '';
+	}
 	
 	self.formatMoney = function( number, options ) {
 		options = options || {};
