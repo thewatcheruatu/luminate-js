@@ -249,6 +249,7 @@ const GWMainDonations = ( () => {
 				attachDesigneeHandlers();
 				attachReverseHandlers();
 				setFormDefaults();
+				attachLayoutHandlers();
 
 				function attachButtonHandlers() {
 					const $stepTwoBackButton = $( '#main-donations-step-two-back' );
@@ -359,6 +360,41 @@ const GWMainDonations = ( () => {
 						.on( 'change', ( e ) => {
 							//giftDetailsList.dynamicShow();
 						} );
+				}
+
+				function attachLayoutHandlers() {
+					let resizeTimeout;
+
+					$( window ).on( 'resize load', () => {
+						clearTimeout( resizeTimeout );
+						resizeTimeout = setTimeout( function() {
+							setMainHeight();
+						}, 200 );
+					} );
+
+					function setMainHeight() {
+						const $main = $( 'main' );
+						
+						$main.css( 'min-height', '' );
+
+						const screenHeight = Math.floor( $( window ).height() );
+						const headerHeight = elHeight( $( 'header' ).first() );
+						const navHeight = elHeight( $( 'nav' ).first() );
+						const footerHeight = elHeight( $( 'footer' ).last() );
+						const mainMinHeight = screenHeight - 
+							( headerHeight + navHeight + footerHeight );
+
+						if ( mainMinHeight > 0 ) {
+							$main.css( 'min-height', mainMinHeight + 'px' );
+						}
+
+						function elHeight( $el ) {
+							return Math.ceil(
+								parseFloat( $el.outerHeight( false ) )
+							);
+						}
+
+					}
 				}
 
 				// Handlers that wire the original form up to the new UI
