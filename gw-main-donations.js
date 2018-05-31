@@ -724,7 +724,7 @@ const GWMainDonations = ( () => {
 			.removeClass( 'active-step' )
 			.addClass( 'hidden' );
 
-		if ( stepNum === '3' ) {
+		if ( stepNum === '3' || stepNum === '4' ) {
 			$step.find( 'input.required' ).first().trigger( 'change' );
 		}
 

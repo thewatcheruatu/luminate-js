@@ -112,32 +112,49 @@ const GWDonations = ( function() {
 
 		// Attach handlers to gift type selection
 		const $giftTypeRadios = $( 'input[name=level_flexiblegift_type]' );
+		const $giftDurationRow = $( '#level_flexibleduration_row' );
 		const $giftDurationSelect = $( '#level_flexibleduration' );
 
-		$giftTypeRadios.add( $giftDurationSelect ).on( 'change', ( e ) => {
-			if ( ! donationLevels.oneTime.length ) {
-				return;
-			}
-
-			const $checkedRadio = $giftTypeRadios.filter( ':checked' );
-			const $donationLevels = $( '.donation-level-container' )
-				.not( ':last-child' );
-			const giftDurationVal = $giftDurationSelect.val();
-
-			$donationLevels.addClass( 'hidden' );
-
-			if ( $checkedRadio.attr( 'id' ) === 'level_flexiblegift_type2' ) {
-				if ( ! giftDurationVal.length ) {
+		$giftTypeRadios
+			.on( 'change', ( e ) => {
+				if ( ! $( e.target ).prop( 'checked' ) ) {
 					return;
-				} else if ( giftDurationVal.charAt( 0 ) === 'M' ) {
-					$( '.monthly-level' ).removeClass( 'hidden' );
-				} else if ( giftDurationVal.charAt( 0 ) === 'Y' ) {
-					$( '.annual-level' ).removeClass( 'hidden' );
 				}
-			} else {
-				$( '.one-time-level' ).removeClass( 'hidden' );
-			}
-		} );
+				if ( $( e.target ).val() === '1' ) {
+					// one-time gift
+					$giftDurationRow.addClass( 'hidden' );
+					$giftDurationSelect.prop( 'disabled', true );
+				} else if ( $( e.target ).val() === '2' ) {
+					// recurring gift
+					$giftDurationRow.removeClass( 'hidden' );
+					$giftDurationSelect.prop( 'disabled', false );
+				}
+			} )
+			.add( $giftDurationSelect )
+			.on( 'change', ( e ) => {
+				if ( ! donationLevels.oneTime.length ) {
+					return;
+				}
+
+				const $checkedRadio = $giftTypeRadios.filter( ':checked' );
+				const $donationLevels = $( '.donation-level-container' )
+					.not( ':last-child' );
+				const giftDurationVal = $giftDurationSelect.val();
+
+				$donationLevels.addClass( 'hidden' );
+
+				if ( $checkedRadio.attr( 'id' ) === 'level_flexiblegift_type2' ) {
+					if ( ! giftDurationVal.length ) {
+						return;
+					} else if ( giftDurationVal.charAt( 0 ) === 'M' ) {
+						$( '.monthly-level' ).removeClass( 'hidden' );
+					} else if ( giftDurationVal.charAt( 0 ) === 'Y' ) {
+						$( '.annual-level' ).removeClass( 'hidden' );
+					}
+				} else {
+					$( '.one-time-level' ).removeClass( 'hidden' );
+				}
+			} );
 	}
 
 	function designeeCalloutInit() {
@@ -427,7 +444,6 @@ const GWDonations = ( function() {
 	function setFlexibleDuration( frequency, duration ) {
 		const $giftTypeRecurring = $( '#level_flexiblegift_type2' );
 		const $flexibleDuration = $( '#level_flexibleduration' );
-
 		$giftTypeRecurring.prop( 'checked', true ).trigger( 'change' );
 		if ( frequency && duration ) {
 			let flexVal = '';
@@ -753,6 +769,10 @@ const SustainingFocus = ( () => {
 			 * select one-time gift--no need for him/her to see that
 			 */
 			.on( 'change', function() {
+				/*
+				 * Moving this to the main GW Donations script
+				 */
+				/*
 				if ( $( this ).val() === '1' ) {
 					// one-time gift
 					$giftDurationRow.addClass( 'hidden' );
@@ -762,6 +782,7 @@ const SustainingFocus = ( () => {
 					$giftDurationRow.removeClass( 'hidden' );
 					$giftDurationSelect.prop( 'disabled', false );
 				}
+				*/
 
 				if ( $( this ).prop( 'checked' ) === false ) {
 					$( this ).parent().removeClass( 'selected' );
