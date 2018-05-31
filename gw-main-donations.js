@@ -72,6 +72,7 @@ const GWMainDonations = ( () => {
 
 					// Assuming everything went as planned, hide the original form
 					repurposeOriginalForm();
+					goToStep( '1' );
 
 					// Add the background image - low priority so this comes last
 					$( 'main' )
@@ -371,6 +372,7 @@ const GWMainDonations = ( () => {
 							$( '#level_flexibleduration' )
 								.val( 'M:0' )
 								.trigger( 'change' );
+
 						} );
 				}
 
@@ -452,6 +454,10 @@ const GWMainDonations = ( () => {
 				}
 			}
 			function repurposeOriginalForm() {
+				$( '#comments_input' )
+					.closest( '.custom-field-container' )
+					.detach()
+					.insertBefore( '#main-donations-step-two-back' );
 				$( 'div[id^=billing], div[id^=donor]' )
 					.detach()
 					.appendTo( $( '#main-donations-step-3-fields' ) );
@@ -557,9 +563,12 @@ const GWMainDonations = ( () => {
 								continue;
 							}
 							const thisDesignee = _designees[indexOfId];
+							const cleanedDesigneeName = thisDesignee.name
+								.replace( /^-|-$/g, '' )
+								.trim();
 							greatestNeedArray.push(
 								'<li><a href="#" data-designee-id="' + thisDesignee.id +
-								'">' + thisDesignee.name + '</a></li>'
+								'">' + cleanedDesigneeName + '</a></li>'
 							);
 						}
 						$greatestNeedList.html( greatestNeedArray.join( '\n' ) );
@@ -584,15 +593,26 @@ const GWMainDonations = ( () => {
 			}
 
 			function setFormDefaults() {
-				if( ! GWUtilities.queryString.get( 'set.OptionalRepeat' ) ) {
+				/*
+				if( GWUtilities.queryString.get( 'set.OptionalRepeat' ) !== 'false' ) {
 					$( '#level_flexiblegift_type2' )
 						.prop( 'checked', true )
 						.trigger( 'change' );
 				}
+				*/
+				
+				// This is a hidden field managed by default Luminate functionality
+				const userDonationAmount = $( '#user_donation_amt' )
+					.val()
+					.replace( '$', '' );
+
+				const defaultDonationAmount = parseFloat( userDonationAmount ) > 5 ?
+					userDonationAmount : 
+					'25';
 
 				if ( ! GWUtilities.queryString.get( 'set.Amount' ) ) {
 					$( '#main-donations-amount' )
-						.val( '15' )
+						.val( defaultDonationAmount )
 						.trigger( 'keyup' );
 				}
 			}
@@ -667,6 +687,19 @@ const GWMainDonations = ( () => {
 			.siblings( '.main-donations-step' )
 			.removeClass( 'active-step' )
 			.addClass( 'hidden' );
+
+		if ( stepNum === '3' ) {
+			$step.find( 'input.required' ).first().trigger( 'change' );
+		}
+
+		selectFirstField( $step );
+
+		function selectFirstField( $section ) {
+			$section.find( 'button, input, select' )
+				.not( '[type=hidden]' )
+				.first()
+				.focus();
+		}
 	}
 
 	function selectDesignee( designee ) {
@@ -706,7 +739,9 @@ const GWRockerSwitches = ( () => {
 
 		$( '.linked-rocker' )
 			.on( 'change', ( e ) => {
-				selectReferencedButton( e.target );
+				if ( $( e.target ).prop( 'checked' ) ) {
+					selectReferencedButton( e.target );
+				}
 			} )
 			.filter( ':checked' )
 			.each( ( i, el ) => {
@@ -771,11 +806,21 @@ const GWRockerSwitches = ( () => {
  * Put this in an HTML Content section on the Luminate donation form
  
 <script src='../js/luminateExtend.js'></script>
-<script src='../js/gwu_wrpr/gw-form-designees.js'></script>
-<script src='../js/gwu_wrpr/gw-designee-search.js'></script>
-<script src='../js/gwu_wrpr/gw-main-donations.js'></script>
+[[?x1017x1046x::x[[S4]]x::
+<script src='https://growlfrequency.com/work/luminate/js/gwu_wrpr/gw-form-designees.js'></script>
+<script src='https://growlfrequency.com/work/luminate/js/gwu_wrpr/gw-designee-search.js'></script>
+<script src='https://growlfrequency.com/work/luminate/js/gwu_wrpr/gw-main-donations.js'></script>
+::
+<script src='../js/gwu_wrpr/gw-form-designees.min.js'></script>
+<script src='../js/gwu_wrpr/gw-designee-search.min.js'></script>
+<script src='../js/gwu_wrpr/gw-main-donations.min.js'></script>
+]]
 <script>
 (function( $ ) {
+	if ( GWUtilities.queryString.get( 'variant' ) !== 'b' ) {
+		GWDefaultSteppedSingleDesignee.init( { jQuery: jQuery } );
+		return;
+	}
 
 	// GW Designee Search
 	if ( typeof GWFormDesignees !== 'undefined' ) {
