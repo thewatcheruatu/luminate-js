@@ -490,10 +490,24 @@ const GWMainDonations = ( () => {
 				}
 			}
 			function repurposeOriginalForm() {
-				$( '#comments_input' )
-					.closest( '.custom-field-container' )
-					.detach()
-					.insertBefore( '#main-donations-step-two-back' );
+				const $commentsInput = $( '#comments_input' );
+				if ( $commentsInput.length ) {
+					const $stepTwoBackButton = $( '#main-donations-step-two-back' );
+					const $commentsLabelBlock = 
+						$commentsInput.siblings( '.form-input-label-block' );
+
+					$stepTwoBackButton.before( '<h3>Comments</h3>' );
+					$commentsLabelBlock
+						.detach()
+						.insertAfter( $commentsInput )
+						.find( 'label' )
+						.html( '<em>e.g., gift details or split designation</em>' );
+
+					$commentsInput
+						.closest( '.custom-field-container' )
+						.detach()
+						.insertBefore( $stepTwoBackButton );
+				}
 				$( 'div[id^=billing], div[id^=donor]' )
 					.detach()
 					.appendTo( $( '#main-donations-step-3-fields' ) );
@@ -505,7 +519,7 @@ const GWMainDonations = ( () => {
 			function loadMainDonationsSection() {
 				return new Promise( ( resolve, reject ) => {
 					const $mainDonationsSection = $( '<section>' ).attr( 'id', 'main-donations-form' );
-					$mainDonationsSection.load( 'https://growlfrequency.com/work/luminate/js/gwu_wrpr/main-donations.html', () => {
+					$mainDonationsSection.load( '../js/gwu_wrpr/main-donations.html', () => {
 						$mainDonationsSection.prependTo( '#ProcessForm' );
 						GWUtilities.loadStylesheet( '/gwu_wrpr/main-donations.css' );
 						resolve( $mainDonationsSection );
@@ -853,11 +867,16 @@ const GWRockerSwitches = ( () => {
 ]]
 <script>
 (function( $ ) {
-	if ( GWUtilities.queryString.get( 'variant' ) !== 'b' ) {
+	var variant = GWUtilities.queryString.get( 'variant' ) ||
+		GWUtilities.cookies.get( 'variant' );
+
+	if ( variant !== 'b' ) {
+		GWUtilities.cookies.set( 'variant', 'a' );
 		GWDefaultSteppedSingleDesignee.init( { jQuery: jQuery } );
 		return;
 	}
 
+	GWUtilities.cookies.set( 'variant', 'b' );
 	// GW Designee Search
 	if ( typeof GWFormDesignees !== 'undefined' ) {
 		var apiConfig = {
