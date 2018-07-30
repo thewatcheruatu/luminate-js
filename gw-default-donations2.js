@@ -155,6 +155,15 @@ const GWDonations = ( function() {
 					$( '.one-time-level' ).removeClass( 'hidden' );
 				}
 			} );
+
+		$( '#tribute_show_honor_fieldsname' )
+			.on( 'change', ( e ) => {
+				const $thisCheckbox = $( e.target );
+				console.log( 'changing' );
+				if ( $thisCheckbox.prop( 'checked' ) === true ) {
+					scrollTo( $thisCheckbox );
+				}
+			} );
 	}
 
 	function designeeCalloutInit() {
