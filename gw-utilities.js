@@ -112,14 +112,14 @@ const GWUtilities = ( function( $ ) {
 			}
 		}
 
-		return '';
+		return undefined;
 	}
 	
 	self.formatMoney = function( number, options ) {
 		options = options || {};
 		options.prefix = options.prefix || '$';
-		options.displayCents = options.displayCents !== undefined ? options.diplayCents : true;
-		options.scale = options.dislayCents === true ? 2 : 0;
+		options.displayCents = options.displayCents !== undefined ? options.displayCents : true;
+		options.scale = options.displayCents === true ? 2 : 0;
 		return self.formatNumber( number, options );
 	};
 	
