@@ -16,7 +16,7 @@ var GWDefaultEvents = ( function() {
 	function cleanup() {
 		//Asynchronous -- this is just housekeeping stuff that can really happen at any time
 		setTimeout( function() {
-			GeneralWrapper.Shared.ensureFirstHeadingIsH1();
+			DOMUtilities.ensureFirstHeadingIsH1();
 			cleanupRequiredQuestions();
 			DOMUtilities.convertTag( $( '.lo-EventSubHeaderBar' ), 'h3' );
 			$( 'table#lo-ticket_class_list_user' ).addClass( 'bordered' );
@@ -170,4 +170,45 @@ var GWDefaultEvents = ( function() {
 	return {
 		init : init
 	}
+} )();
+
+const GWDefaultEventsUtilities = ( function() {
+	function hideAvailableColumn( dependencies ) {
+		hideNthColumn( 1 );
+	}
+
+	function hideLimitColumn( dependencies ) {
+		hideNthColumn( 2 );
+	}
+
+	function hideNthColumn( n, dependencies ) {
+		dependencies = dependencies || {};
+		const $ = dependencies.jQuery || jQuery;
+		if ( ! $ ) {
+			console.log( 'Missing dependency: jQuery' );
+			return false;
+		}
+
+		$( _hideNthColumn() );
+
+		function _hideNthColumn() {
+			const ticketTables = 
+				$( '#caluserMultiPartTicketList, div[id^=lo-ticketClassContainer] table' );
+			ticketTables.find( 'tr' ).each( ( i, el ) => {
+				const rowChildren = $( el ).children( 'th, td' );
+				rowChildren
+					.eq( n )
+					.addClass( 'hidden' );
+			} );
+		}
+	}
+
+
+	return {
+		ticketTables : {
+			hideAvailable : hideAvailableColumn,
+			hideLimit : hideLimitColumn,
+		},
+	};
+
 } )();
