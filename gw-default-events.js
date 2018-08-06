@@ -140,6 +140,8 @@ var GWDefaultEvents = ( function() {
 				html += 'Last Name ';
 			} else if ( realId.indexOf( 'cons_email' ) >= 0 ) {
 				html += 'Email ';
+			} else if ( realId.indexOf( 'cons_zip_code' ) >= 0 ) {
+				html += 'Zip / Postal Code';
 			}
 			html += '</label><input type="text" id="' + fakeId + '" class="fake-input" data-original="' + realId + '" '
 			      + 'size="' + $( this ).attr( 'size' ) + '" value="' + originalValue + '"'
@@ -201,6 +203,36 @@ const GWDefaultEventsUtilities = ( function() {
 					.addClass( 'hidden' );
 			} );
 		}
+
+	}
+
+	function unlinkChildTicketDescriptions( dependencies ) {
+		dependencies = dependencies || {};
+		const $ = dependencies.jQuery || jQuery;
+		if ( ! $ ) {
+			console.log( 'Missing dependency: jQuery' );
+			return false;
+		}
+		
+		$( () => {
+			$( '.ticket-class-details' ).each( ( i, el ) => {
+				const thisId = 
+					$( el ).attr( 'id' ).replace( 'ticket-class-details-', '' );
+				unlinkChildTicketDescription( thisId );
+			} );
+		} );
+
+		function unlinkChildTicketDescription( ticketId ) {
+			const $ticketClassDetailsLink = 
+				$( '#ticket-class-details-link-' + ticketId );
+			if ( ! $ticketClassDetailsLink ) {
+				return;
+			}
+			const ticketName = $ticketClassDetailsLink.html();
+			$ticketClassDetailsLink
+				.closest( 'div' )
+				.html( '<p>' + ticketName + '</p>' );
+		}
 	}
 
 
@@ -208,6 +240,7 @@ const GWDefaultEventsUtilities = ( function() {
 		ticketTables : {
 			hideAvailable : hideAvailableColumn,
 			hideLimit : hideLimitColumn,
+			unlinkChildTicketDescriptions : unlinkChildTicketDescriptions,
 		},
 	};
 
